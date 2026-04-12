@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reconciliation - Kareena Financial</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased">
+<header class="bg-white shadow-sm sticky top-0 z-50">
+  <div class="container mx-auto px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-3">
+    <div class="flex items-center gap-4 flex-wrap">
+      <h1 class="text-xl font-bold text-blue-900">Kareena Financial</h1>
+      <nav class="flex flex-wrap gap-2 text-sm">
+        <a href="/" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Dashboard</a>
+        <a href="/sku-insights" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">SKU Insights</a>
+        <a href="/advertising" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Advertising</a>
+        <a href="/reconciliation" class="text-blue-600 font-semibold px-3 py-1 rounded-lg bg-blue-50 transition">Reconciliation</a>
+        <a href="/promotions" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Promotions</a>
+        <a href="/iqo" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">IQO Log</a>
+        <a href="/board" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Board</a>
+        <a href="/sop" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">SOP</a>
+        <a href="/audit" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Upload</a>
+        <a href="/admin" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Admin</a>
+      </nav>
+    </div>
+    <form method="GET" action="/reconciliation" class="flex items-center gap-2">
+      <input type="date" name="start_date" value="{{ start_date }}" class="border rounded-lg px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+      <span class="text-gray-400 text-sm">to</span>
+      <input type="date" name="end_date" value="{{ end_date }}" class="border rounded-lg px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+      <button type="submit" class="bg-blue-600 text-white text-sm px-4 py-1.5 rounded-lg hover:bg-blue-700">Filter</button>
+    </form>
+  </div>
+</header>
+
+<main class="container mx-auto px-6 py-6 space-y-8">
+  <div class="flex items-center justify-between">
+    <h2 class="text-2xl font-bold text-gray-800">Does Amazon Owe Me Money?</h2>
+    <span class="px-4 py-2 rounded-full font-bold text-sm {% if recon.status == 'OK' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+      {{ '✅ Amazon Payout Verified' if recon.status == 'OK' else '⚠️ Discrepancy Found' }}
+    </span>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+      <p class="text-xs text-gray-500 mb-1">Net Sales (after fees)</p>
+      <p class="text-2xl font-bold text-blue-600">₹{{ "{:,.2f}".format(recon.total_sales_net) }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+      <p class="text-xs text-gray-500 mb-1">Total Refunds Paid Out</p>
+      <p class="text-2xl font-bold text-red-500">₹{{ "{:,.2f}".format(recon.total_refunds) }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+      <p class="text-xs text-gray-500 mb-1">Reimbursements Received</p>
+      <p class="text-2xl font-bold text-green-600">₹{{ "{:,.2f}".format(recon.total_reimbursements) }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+      <p class="text-xs text-gray-500 mb-1">Total Disbursed to Bank</p>
+      <p class="text-2xl font-bold text-indigo-600">₹{{ "{:,.2f}".format(recon.total_disbursed) }}</p>
+    </div>
+  </div>
+
+  <!-- Reconciliation Breakdown -->
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+    <h3 class="font-semibold text-gray-700 mb-4">Amazon Payout Reconciliation (Net Proceeds)</h3>
+    <div class="space-y-3 max-w-lg">
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-gray-600">Net Sales (Orders - Fees)</span>
+        <span class="font-semibold">₹{{ "{:,.2f}".format(recon.total_sales_net) }}</span>
+      </div>
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-gray-600">− Refunds Issued</span>
+        <span class="font-semibold text-red-500">−₹{{ "{:,.2f}".format(recon.total_refunds) }}</span>
+      </div>
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-gray-600">+ Reimbursements</span>
+        <span class="font-semibold text-green-600">+₹{{ "{:,.2f}".format(recon.total_reimbursements) }}</span>
+      </div>
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-gray-600">− Promotional Rebates</span>
+        <span class="font-semibold text-orange-500">−₹{{ "{:,.2f}".format(summary.Promotions) }}</span>
+      </div>
+      <div class="flex justify-between py-2 border-b border-gray-200 font-semibold text-gray-800">
+        <span>= Expected Net Payout</span>
+        <span>₹{{ "{:,.2f}".format(recon.expected_payout) }}</span>
+      </div>
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-gray-600">Actual Disbursed</span>
+        <span class="font-semibold">₹{{ "{:,.2f}".format(recon.total_disbursed) }}</span>
+      </div>
+      <div class="flex justify-between py-3 rounded-lg px-3 {% if recon.discrepancy | abs < 100 %}bg-green-50{% else %}bg-red-50{% endif %}">
+        <span class="font-bold {% if recon.discrepancy | abs < 100 %}text-green-700{% else %}text-red-700{% endif %}">
+          Discrepancy (Amazon {% if recon.discrepancy > 0 %}Owes You{% else %}Overpaid{% endif %})
+        </span>
+        <span class="font-bold text-xl {% if recon.discrepancy | abs < 100 %}text-green-700{% else %}text-red-700{% endif %}">
+          ₹{{ "{:,.2f}".format(recon.discrepancy | abs) }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deferred -->
+  {% if recon.total_deferred > 0 %}
+  <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-5">
+    <h3 class="font-semibold text-indigo-800 mb-1">⏳ Deferred / In Reserve</h3>
+    <p class="text-indigo-700">Amazon is holding <strong>₹{{ "{:,.2f}".format(recon.total_deferred) }}</strong> in reserve (orders still in return window). This will be disbursed after the return window closes.</p>
+  </div>
+  {% endif %}
+
+  <!-- Potentially unreimbursed returns -->
+  {% if recon.potentially_unreimbursed_count > 0 %}
+  <div class="bg-red-50 border border-red-200 rounded-xl p-5">
+    <h3 class="font-semibold text-red-800 mb-2">⚠️ {{ recon.potentially_unreimbursed_count }} Refunded Orders With No Matching Reimbursement</h3>
+    <p class="text-red-700 text-sm mb-3">These orders were refunded to the customer but no reimbursement event was found. Check if Amazon reimbursed you for damaged/lost FBA inventory.</p>
+    <div class="flex flex-wrap gap-2">
+      {% for order_id in recon.potentially_unreimbursed_orders %}
+      <span class="bg-red-100 text-red-700 text-xs font-mono px-2 py-1 rounded">{{ order_id }}</span>
+      {% endfor %}
+      {% if recon.potentially_unreimbursed_count > 20 %}
+      <span class="text-red-500 text-xs italic">...and {{ recon.potentially_unreimbursed_count - 20 }} more</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Net Income Verification -->
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+    <h3 class="font-semibold text-gray-700 mb-4">Net Income Verification vs Transaction Summary</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <p class="text-sm text-gray-500 mb-3">Dashboard calculates Net Income as:</p>
+        <div class="space-y-2 text-sm font-mono bg-gray-50 rounded-lg p-4">
+          <div class="flex justify-between"><span>Sales</span><span class="text-green-600">+₹{{ "{:,.2f}".format(summary.Sales) }}</span></div>
+          <div class="flex justify-between"><span>Reimbursements</span><span class="text-green-600">+₹{{ "{:,.2f}".format(summary.Reimbursements) }}</span></div>
+          <div class="flex justify-between"><span>FBA Fees</span><span class="text-red-500">−₹{{ "{:,.2f}".format(summary.FBA_Fees) }}</span></div>
+          <div class="flex justify-between"><span>Selling Fees</span><span class="text-red-500">−₹{{ "{:,.2f}".format(summary.Selling_Fees) }}</span></div>
+          <div class="flex justify-between"><span>Other Amazon Fees</span><span class="text-red-500">−₹{{ "{:,.2f}".format(summary.Other_Amazon_Fees) }}</span></div>
+          <div class="flex justify-between"><span>Refunds</span><span class="text-red-500">−₹{{ "{:,.2f}".format(summary.Refunds) }}</span></div>
+          <div class="flex justify-between"><span>Ads Cost</span><span class="text-red-500">−₹{{ "{:,.2f}".format(summary.Ads_Cost) }}</span></div>
+          <div class="flex justify-between"><span>COGS</span><span class="text-red-500">−₹{{ "{:,.2f}".format(summary.COGS) }}</span></div>
+          <div class="flex justify-between"><span>OpEx</span><span class="text-red-500">−₹{{ "{:,.2f}".format(summary.OpEx) }}</span></div>
+          <div class="flex justify-between border-t border-gray-300 pt-2 font-bold"><span>= Net Income</span><span class="{% if summary.Net_Income >= 0 %}text-green-600{% else %}text-red-600{% endif %}">₹{{ "{:,.2f}".format(summary.Net_Income) }}</span></div>
+        </div>
+      </div>
+      <div class="bg-blue-50 rounded-lg p-4">
+        <p class="text-sm text-blue-700 font-semibold mb-2">How to verify:</p>
+        <ol class="text-sm text-blue-700 space-y-2 list-decimal list-inside">
+          <li>Download the <strong>Monthly Summary Report</strong> from Amazon Seller Central</li>
+          <li>Find the "Net Proceeds" or "Total" row</li>
+          <li>Compare with Net Income shown here (before COGS & OpEx)</li>
+          <li>Amazon's figure = Sales − Fees − Refunds + Reimbursements</li>
+          <li>Difference should be &lt; ₹100 (rounding)</li>
+        </ol>
+        <div class="mt-4 p-3 bg-white rounded-lg border border-blue-200">
+          <p class="text-xs text-blue-500 font-medium">Amazon-comparable figure (excl. COGS & OpEx):</p>
+          <p class="text-2xl font-bold text-blue-700">₹{{ "{:,.2f}".format(summary.Sales + summary.Reimbursements - summary.FBA_Fees - summary.Selling_Fees - summary.Other_Amazon_Fees - summary.Refunds) }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Payout Deep Dive -->
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mt-8">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="font-semibold text-gray-700">Detailed Payout History (Deep Dive)</h3>
+      <p class="text-xs text-gray-500 italic">Heuristic based on Amazon Transfer dates</p>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Bank Transfer Date</th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Gross Sales</th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Fees</th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Promos</th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Refunds</th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Reimb.</th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase font-bold">Total Payout</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for p in deep_dive %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-3 font-medium text-gray-800">{{ p.date }}</td>
+            <td class="px-4 py-3 text-right text-gray-600">₹{{ "{:,.2f}".format(p.gross_sales) }}</td>
+            <td class="px-4 py-3 text-right text-red-400">-₹{{ "{:,.2f}".format(p.fees) }}</td>
+            <td class="px-4 py-3 text-right text-orange-400">-₹{{ "{:,.2f}".format(p.promotions) }}</td>
+            <td class="px-4 py-3 text-right text-red-500">-₹{{ "{:,.2f}".format(p.refunds) }}</td>
+            <td class="px-4 py-3 text-right text-green-500">+₹{{ "{:,.2f}".format(p.reimbursements) }}</td>
+            <td class="px-4 py-3 text-right font-bold text-blue-700">₹{{ "{:,.2f}".format(p.amount) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+</body>
+</html>

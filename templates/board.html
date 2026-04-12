@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Board - Kareena Financial</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 font-sans antialiased">
+<header class="bg-white shadow-sm sticky top-0 z-50">
+  <div class="container mx-auto px-6 py-3 flex items-center gap-4 flex-wrap">
+    <h1 class="text-xl font-bold text-blue-900">Kareena Financial</h1>
+      <nav class="flex flex-wrap gap-2 text-sm">
+        <a href="/" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Dashboard</a>
+        <a href="/sku-insights" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">SKU Insights</a>
+        <a href="/advertising" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Advertising</a>
+        <a href="/reconciliation" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Reconciliation</a>
+        <a href="/promotions" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Promotions</a>
+        <a href="/iqo" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">IQO Log</a>
+        <a href="/board" class="text-blue-600 font-semibold px-3 py-1 rounded-lg bg-blue-50 transition">Board</a>
+        <a href="/sop" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">SOP</a>
+        <a href="/audit" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Upload</a>
+        <a href="/admin" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Admin</a>
+      </nav>
+  </div>
+</header>
+
+<!-- Add Card Modal -->
+<div id="addModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-bold">Add New Card</h3>
+      <button onclick="document.getElementById('addModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+    </div>
+    <form action="/board/add" method="POST" class="space-y-3">
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Title *</label>
+        <input type="text" name="title" required class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Description</label>
+        <textarea name="description" rows="2" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Column</label>
+          <select name="column_name" id="modalColumn" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="To Do">To Do</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Review">Review</option>
+            <option value="Done">Done</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Priority</label>
+          <select name="priority" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="Low">Low</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="High">High</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Assignee</label>
+          <input type="text" name="assignee" placeholder="Name" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Due Date</label>
+          <input type="date" name="due_date" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+      </div>
+      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold text-sm mt-2">Add Card</button>
+    </form>
+  </div>
+</div>
+
+<main class="px-6 py-6">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold text-gray-800">Accountability Board</h2>
+    <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-semibold">+ Add Card</button>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    {% set col_colors = {'To Do': 'border-gray-300', 'In Progress': 'border-blue-400', 'Review': 'border-yellow-400', 'Done': 'border-green-400'} %}
+    {% set col_headers = {'To Do': 'bg-gray-100 text-gray-700', 'In Progress': 'bg-blue-50 text-blue-700', 'Review': 'bg-yellow-50 text-yellow-700', 'Done': 'bg-green-50 text-green-700'} %}
+    {% for col in columns %}
+    <div class="flex flex-col gap-3">
+      <div class="flex items-center justify-between px-3 py-2 rounded-lg {{ col_headers[col] }}">
+        <span class="font-semibold text-sm">{{ col }}</span>
+        <span class="text-xs font-bold bg-white/60 px-2 py-0.5 rounded-full">{{ cards_by_col[col] | length }}</span>
+      </div>
+      <div class="flex flex-col gap-3 min-h-[200px]" ondragover="allowDrop(event)" ondrop="drop(event, '{{ col }}')">
+        {% for card in cards_by_col[col] %}
+        <div class="bg-white rounded-xl shadow-sm border-l-4 {{ col_colors[col] }} p-4 hover:shadow-md transition cursor-move" 
+             draggable="true" ondragstart="drag(event)" id="card-{{ card.id }}" data-card-id="{{ card.id }}">
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <h4 class="font-semibold text-gray-800 text-sm leading-snug">{{ card.title }}</h4>
+            <span class="text-xs px-1.5 py-0.5 rounded flex-shrink-0 font-medium
+              {% if card.priority == 'High' %}bg-red-100 text-red-600
+              {% elif card.priority == 'Medium' %}bg-yellow-100 text-yellow-600
+              {% else %}bg-gray-100 text-gray-500{% endif %}">{{ card.priority }}</span>
+          </div>
+          {% if card.description %}<p class="text-xs text-gray-500 mb-2 leading-relaxed">{{ card.description }}</p>{% endif %}
+          <div class="flex items-center justify-between mt-2">
+            <div class="text-xs text-gray-400 space-y-0.5">
+              {% if card.assignee %}<div>👤 {{ card.assignee }}</div>{% endif %}
+              {% if card.due_date %}<div class="{% if card.due_date < datetime.date.today() %}text-red-500 font-medium{% endif %}">📅 {{ card.due_date.strftime('%d %b') }}</div>{% endif %}
+            </div>
+            <div class="flex gap-1">
+              {% if col != 'Done' %}
+              {% set next_cols = {'To Do': 'In Progress', 'In Progress': 'Review', 'Review': 'Done'} %}
+              <form action="/board/move/{{ card.id }}" method="POST">
+                <input type="hidden" name="column_name" value="{{ next_cols[col] }}">
+                <button type="submit" class="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100 transition">→</button>
+              </form>
+              {% endif %}
+              <form action="/board/delete/{{ card.id }}" method="POST" onsubmit="return confirm('Delete this card?')">
+                <button type="submit" class="text-xs bg-gray-50 text-gray-400 px-2 py-1 rounded hover:bg-red-50 hover:text-red-500 transition">×</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <div class="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center text-xs text-gray-400 italic">
+          Drop cards here
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</main>
+
+<script>
+function openAddModal(col) {
+  document.getElementById('modalColumn').value = col;
+  document.getElementById('addModal').classList.remove('hidden');
+}
+
+function allowDrop(ev) {
+    ev.preventDefault();
+}
+
+function drag(ev) {
+    ev.dataTransfer.setData("card_id", ev.target.getAttribute('data-card-id'));
+    ev.dataTransfer.setData("element_id", ev.target.id);
+    ev.target.classList.add('opacity-50');
+}
+
+async function drop(ev, column) {
+    ev.preventDefault();
+    const cardId = ev.dataTransfer.getData("card_id");
+    const elementId = ev.dataTransfer.getData("element_id");
+    const el = document.getElementById(elementId);
+    el.classList.remove('opacity-50');
+
+    // Find the nearest column container if dropped on a card
+    let target = ev.target;
+    while (target && !target.hasAttribute('ondrop')) {
+        target = target.parentElement;
+    }
+    
+    if (target) {
+        target.appendChild(el);
+    }
+
+    try {
+        const response = await fetch(`/board/move/${cardId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ column_name: column })
+        });
+        
+        if (!response.ok) {
+            console.error('Failed to move card');
+            window.location.reload(); // Rollback UI on error
+        }
+    } catch (err) {
+        console.error(err);
+        window.location.reload();
+    }
+}
+
+// Ensure opacity is restored if drag is cancelled
+document.addEventListener('dragend', function(event) {
+    if (event.target.classList.contains('opacity-50')) {
+        event.target.classList.remove('opacity-50');
+    }
+});
+</script>
+</body>
+</html>

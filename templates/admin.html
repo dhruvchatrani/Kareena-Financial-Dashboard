@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Kareena Financial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased">
+<header class="bg-white shadow-sm sticky top-0 z-50">
+  <div class="container mx-auto px-6 py-3 flex items-center gap-4 flex-wrap">
+    <h1 class="text-xl font-bold text-blue-900">Kareena Financial</h1>
+    <nav class="flex flex-wrap gap-2 text-sm">
+      <a href="/" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Dashboard</a>
+      <a href="/sku-insights" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">SKU Insights</a>
+      <a href="/advertising" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Advertising</a>
+      <a href="/reconciliation" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Reconciliation</a>
+      <a href="/promotions" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Promotions</a>
+      <a href="/iqo" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">IQO Log</a>
+      <a href="/board" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Board</a>
+      <a href="/sop" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">SOP</a>
+      <a href="/audit" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Upload</a>
+      <a href="/admin" class="text-blue-600 font-semibold px-3 py-1 rounded-lg bg-blue-50 transition">Admin</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container mx-auto px-6 py-10 space-y-10">
+    <!-- Header with Backup Button -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-3xl font-extrabold text-gray-900">Admin Control Panel</h2>
+            <p class="text-gray-500 mt-1">Manage inventory, units costs, and overall system state.</p>
+        </div>
+        <a href="/admin/backup" class="inline-flex items-center gap-2 bg-gray-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm hover:bg-gray-900 transition-all hover:shadow-md active:scale-95">
+            💾 Backup Database (SQL)
+        </a>
+    </div>
+
+    <!-- Monthly Audit CTA -->
+    <a href="/audit" class="block group">
+        <section class="bg-gradient-to-br from-blue-900 to-indigo-900 rounded-2xl shadow-xl p-8 text-white relative overflow-hidden transition hover:shadow-2xl hover:scale-[1.005]">
+            <div class="relative z-10 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <span class="p-3 bg-white/10 rounded-xl text-3xl">📊</span>
+                    <div>
+                        <h3 class="text-xl font-bold">Monthly Financial Audit</h3>
+                        <p class="text-blue-200 text-sm">Upload your Amazon reports to sync data and generate a health audit.</p>
+                    </div>
+                </div>
+                <span class="text-3xl group-hover:translate-x-2 transition-transform">→</span>
+            </div>
+            <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl"></div>
+        </section>
+    </a>
+
+    <!-- Section: WhatsApp Data Import -->
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-gray-800">
+            <span class="p-2 bg-green-50 text-green-600 rounded-lg">📲</span>
+            WhatsApp Data Import
+        </h3>
+        <p class="text-sm text-gray-500 mb-6 max-w-2xl">
+            Clicking the button below will scan the project's historical folder and automatically import compatible Settlements, Business Reports, Ads, and Returns.
+        </p>
+        <form action="/admin/import-whatsapp" method="POST">
+            <button type="submit" class="bg-green-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-green-700 transition shadow-lg hover:shadow-xl flex items-center gap-2 active:scale-95">
+                🔄 Sync Historical Data
+            </button>
+        </form>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Section: Inventory -->
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-xl font-bold mb-6 flex items-center gap-2 text-gray-800">
+                <span class="p-2 bg-blue-50 text-blue-600 rounded-lg">📦</span>
+                Local Inventory
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-100">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">SKU</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Stock</th>
+                            <th class="px-4 py-3 text-right text-xs font-bold text-gray-400 uppercase tracking-widest">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        {% for item in inventory %}
+                        <tr>
+                            <td class="px-4 py-4 text-sm font-bold text-gray-700">{{ item.sku }}</td>
+                            <td class="px-4 py-4">
+                                <input form="inv-form-{{ loop.index }}" type="number" name="local_stock" value="{{ item.local_stock }}" 
+                                       class="border border-gray-200 rounded-lg px-2 py-1 w-20 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                            </td>
+                            <td class="px-4 py-4 text-right">
+                                <form id="inv-form-{{ loop.index }}" action="/admin/inventory" method="POST">
+                                    <input type="hidden" name="sku" value="{{ item.sku }}">
+                                </form>
+                                <button form="inv-form-{{ loop.index }}" type="submit" class="text-blue-600 hover:text-blue-800 font-bold text-sm">Update</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section: COGS -->
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-xl font-bold mb-6 flex items-center gap-2 text-gray-800">
+                <span class="p-2 bg-green-50 text-green-600 rounded-lg">💰</span>
+                Active COGS
+            </h3>
+            <form action="/admin/cogs" method="POST" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Select SKU</label>
+                    <select name="sku" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none bg-white">
+                        {% for item in inventory %}
+                        <option value="{{ item.sku }}">{{ item.sku }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Unit Cost (₹)</label>
+                    <input type="number" step="0.01" name="unit_cost" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none bg-white">
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="w-full bg-green-600 text-white font-bold py-2 rounded-lg hover:bg-green-700 transition shadow-md active:scale-95">Set Cost</button>
+                </div>
+            </form>
+            <div class="space-y-2">
+                {% for c in active_cogs %}
+                <div class="flex justify-between items-center p-3 bg-white border border-gray-50 rounded-xl">
+                    <span class="text-sm font-bold text-gray-600">{{ c.sku }}</span>
+                    <span class="font-mono text-sm text-green-600 font-bold">₹{{ "{:,.2f}".format(c.unit_cost) }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+
+    <!-- Section: Expenses -->
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <h3 class="text-xl font-bold mb-6 flex items-center gap-2 text-gray-800">
+            <span class="p-2 bg-red-50 text-red-600 rounded-lg">💸</span>
+            Log Business Expenses
+        </h3>
+        <form action="/admin/expense" method="POST" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Category</label>
+                    <input type="text" name="category" placeholder="Software, Rent, etc." required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-4 focus:ring-blue-50 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Amount (₹)</label>
+                    <input type="number" step="0.01" name="amount" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-4 focus:ring-blue-50 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Date</label>
+                    <input type="date" name="date" value="{{ datetime.date.today() }}" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-4 focus:ring-blue-50 outline-none">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Description</label>
+                <textarea name="description" rows="2" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-50 outline-none resize-none"></textarea>
+            </div>
+            <button type="submit" class="bg-red-600 text-white font-bold py-3 px-10 rounded-xl hover:bg-red-700 transition shadow-lg hover:shadow-xl active:scale-95">
+                Log Expense
+            </button>
+        </form>
+    </section>
+
+    <!-- Danger Zone Wrapper -->
+    <div class="pt-20">
+        <hr class="border-gray-100 mb-12">
+        <section class="bg-red-50 rounded-2xl border border-red-100 p-8">
+            <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-red-800">
+                <span class="p-2 bg-red-100 text-red-600 rounded-lg">⚠️</span>
+                Danger Zone: System Reset
+            </h3>
+            <p class="text-red-700 text-sm mb-6 max-w-2xl">
+                This will permanently delete <strong>ALL</strong> financial events, inventory, COGS versions, ads data, and expenses. 
+                This action is irreversible. Use with extreme caution.
+            </p>
+            
+            <form id="reset-form" action="/admin/reset-db" method="POST">
+                <button type="button" onclick="confirmReset()" class="bg-red-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-red-700 transition shadow-lg hover:shadow-xl active:scale-95">
+                    🗑️ Reset All Database Data
+                </button>
+            </form>
+        </section>
+    </div>
+</main>
+
+<script>
+    function confirmReset() {
+        const firstConfirmation = confirm("Are you ABSOLUTELY sure you want to empty the entire database? All sales, expenses, and settings will be lost.");
+        if (firstConfirmation) {
+            const secondConfirmation = prompt("To confirm deletion, please type 'DELETE' in all caps:");
+            if (secondConfirmation === "DELETE") {
+                document.getElementById('reset-form').submit();
+            } else {
+                alert("Incorrect confirmation text. Database reset cancelled.");
+            }
+        }
+    }
+
+    // Show messages from URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('msg')) {
+        alert(urlParams.get('msg'));
+    }
+</script>
+</body>
+</html>

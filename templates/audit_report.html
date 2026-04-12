@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Audit Report | Kareena</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .date-range {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .audit-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            border-radius: 99px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-healthy { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .status-warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+
+        .data-warning {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #fca5a5;
+            font-size: 0.875rem;
+        }
+
+        .ai-summary {
+            font-size: 1.25rem;
+            font-weight: 400;
+            color: #e2e8f0;
+            border-left: 4px solid var(--primary);
+            padding-left: 1.5rem;
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .metric-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .metric-label {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .flags-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .flag-item {
+            color: var(--danger);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding-bottom: 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 2rem;
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; padding: 0; }
+            .audit-card { 
+                box-shadow: none !important; 
+                border: 1px solid #ddd !important; 
+                background: white !important; 
+                color: black !important;
+            }
+            h1 { -webkit-text-fill-color: black !important; margin-bottom: 10px; }
+            .metric-item { border: 1px solid #eee !important; }
+            .metric-value { color: black !important; }
+            .ai-summary { border-left: 4px solid #6366f1 !important; color: #333 !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Manual Audit Report</h1>
+            <p class="date-range">
+                {% if start_date and end_date %}
+                    {{ start_date }} to {{ end_date }}
+                {% else %}
+                    Full Period Analysis
+                {% endif %}
+            </p>
+        </header>
+
+        <main class="audit-card">
+            {% if missing_keys %}
+            <div class="data-warning no-print">
+                <span>⚠️</span>
+                <div>
+                    <strong>Data Gap Detected:</strong> Following sources were missing: {{ missing_keys|join(', ') }}. Metrics and audit may be incomplete.
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="status-badge {% if audit.status == 'Healthy' %}status-healthy{% else %}status-warning{% endif %}">
+                System Status: {{ audit.status }}
+            </div>
+
+            <div class="ai-summary">
+                "{{ audit.llm_prompt.split('Task:')[1].strip() if 'Task:' in audit.llm_prompt else 'Processing detailed summary...' }}"
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <span class="metric-label">Gross Sales</span>
+                    <span class="metric-value">₹{{ "{:,.2f}".format(metrics.gross_sales) }}</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Ad Spend</span>
+                    <span class="metric-value">₹{{ "{:,.2f}".format(metrics.ad_spend) }}</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">TACOS</span>
+                    <span class="metric-value">{{ metrics.tacos_pct }}%</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Conversion</span>
+                    <span class="metric-value">{{ metrics.unit_session_pct }}%</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Return Rate</span>
+                    <span class="metric-value">{{ metrics.return_pct }}%</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Net Payout</span>
+                    <span class="metric-value">₹{{ "{:,.2f}".format(metrics.net_payout) }}</span>
+                </div>
+            </div>
+
+            {% if audit.flags %}
+            <div class="flags-section">
+                {% for flag in audit.flags %}
+                <div class="flag-item">
+                    <span>⚠️</span> {{ flag }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </main>
+
+        <footer class="no-print">
+            <button onclick="window.print()" class="btn btn-secondary">Download PDF report</button>
+            <a href="/admin" class="btn btn-primary">Return to Control Center</a>
+        </footer>
+    </div>
+</body>
+</html>

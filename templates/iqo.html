@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IQO Log - Kareena Financial</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased">
+<header class="bg-white shadow-sm sticky top-0 z-50">
+  <div class="container mx-auto px-6 py-3 flex items-center gap-4 flex-wrap">
+    <h1 class="text-xl font-bold text-blue-900">Kareena Financial</h1>
+    <nav class="flex flex-wrap gap-2 text-sm">
+      <a href="/" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Dashboard</a>
+      <a href="/sku-insights" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">SKU Insights</a>
+      <a href="/advertising" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Advertising</a>
+      <a href="/reconciliation" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Reconciliation</a>
+      <a href="/promotions" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Promotions</a>
+      <a href="/iqo" class="text-blue-600 font-semibold px-3 py-1 rounded-lg bg-blue-50 transition">IQO Log</a>
+      <a href="/board" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Board</a>
+      <a href="/sop" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">SOP</a>
+      <a href="/audit" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Upload</a>
+      <a href="/admin" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Admin</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container mx-auto px-6 py-6 space-y-8">
+  <div>
+    <h2 class="text-2xl font-bold text-gray-800">IQO Log</h2>
+    <p class="text-gray-500 text-sm mt-1"><strong>Innovate</strong> → make one change per week · <strong>Quantify</strong> → measure its impact · <strong>Orchestrate</strong> → systemise what works</p>
+  </div>
+
+  <!-- Stage legend -->
+  <div class="flex gap-4 flex-wrap text-sm">
+    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span>Innovate — new experiment</span>
+    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span>Quantify — measuring results</span>
+    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span>Orchestrate — baked into system</span>
+  </div>
+
+  <!-- Add Entry Form -->
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+    <h3 class="font-semibold text-gray-700 mb-4">+ Log New Entry</h3>
+    <form action="/iqo/add" method="POST" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Week Starting</label>
+        <input type="date" name="week_start" required class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Stage</label>
+        <select name="stage" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="Innovate">🔵 Innovate</option>
+          <option value="Quantify">🟡 Quantify</option>
+          <option value="Orchestrate">🟢 Orchestrate</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Title / Change Made</label>
+        <input type="text" name="title" required placeholder="e.g. Changed main image" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Target SKU (Optional)</label>
+        <input type="text" name="target_sku" id="target_sku" placeholder="e.g. B0XXXXXX" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="md:col-span-2">
+        <label class="block text-xs font-medium text-gray-600 mb-1">Description</label>
+        <textarea name="description" rows="2" placeholder="What did you change and why?" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Outcome</label>
+        <select name="outcome" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">— Pending —</option>
+          <option value="Positive">✅ Positive</option>
+          <option value="Neutral">⚪ Neutral</option>
+          <option value="Negative">❌ Negative</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Metric Label (e.g. CVR, Sales)</label>
+        <div class="flex gap-2">
+          <input type="text" name="metric_label" id="metric_label" placeholder="e.g. Conversion Rate" class="flex-1 border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+          <button type="button" onclick="fetchMetrics()" class="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-200 text-xs font-bold">Fetch</button>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Metric Before</label>
+        <input type="number" step="0.01" name="metric_before" placeholder="0.0" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Metric After</label>
+        <input type="number" step="0.01" name="metric_after" placeholder="0.0" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="flex items-end">
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition text-sm font-semibold">Add Entry</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Entries Timeline -->
+  <div class="space-y-4">
+    {% for entry in entries %}
+    <div class="bg-white rounded-xl border shadow-sm p-5 flex flex-col md:flex-row gap-4 {% if entry.orchestrated %}border-green-200 bg-green-50/30{% elif entry.stage == 'Quantify' %}border-yellow-200{% else %}border-gray-100{% endif %}">
+      <div class="flex-shrink-0 text-center min-w-[80px]">
+        <p class="text-xs text-gray-400">Week of</p>
+        <p class="text-sm font-bold text-gray-700">{{ entry.week_start.strftime('%d %b') }}</p>
+        <span class="inline-block mt-2 text-xs px-2 py-0.5 rounded-full font-semibold
+          {% if entry.stage == 'Innovate' %}bg-blue-100 text-blue-700
+          {% elif entry.stage == 'Quantify' %}bg-yellow-100 text-yellow-700
+          {% else %}bg-green-100 text-green-700{% endif %}">
+          {{ entry.stage }}
+        </span>
+      </div>
+      <div class="flex-1">
+        <div class="flex items-start justify-between gap-2">
+          <h4 class="font-semibold text-gray-800">{{ entry.title }}</h4>
+          {% if entry.outcome %}
+          <span class="text-sm flex-shrink-0">
+            {% if entry.outcome == 'Positive' %}✅ Positive
+            {% elif entry.outcome == 'Negative' %}❌ Negative
+            {% else %}⚪ Neutral{% endif %}
+          </span>
+          {% endif %}
+        </div>
+        {% if entry.description %}<p class="text-sm text-gray-600 mt-1">{{ entry.description }}</p>{% endif %}
+        {% if entry.metric_label %}
+        <div class="mt-2 flex items-center gap-3 text-sm">
+          <span class="text-gray-500">{{ entry.metric_label }}:</span>
+          {% if entry.metric_before is not none %}<span class="text-gray-600">Before: <strong>{{ entry.metric_before }}</strong></span>{% endif %}
+          {% if entry.metric_after is not none %}
+          <span>→</span>
+          <span class="{% if entry.metric_after > entry.metric_before %}text-green-600{% elif entry.metric_after < entry.metric_before %}text-red-600{% else %}text-gray-600{% endif %}">After: <strong>{{ entry.metric_after }}</strong></span>
+          {% if entry.metric_before and entry.metric_before != 0 %}
+          <span class="text-xs text-gray-400">({{ "+" if entry.metric_after > entry.metric_before else "" }}{{ "{:.1f}".format((entry.metric_after - entry.metric_before) / entry.metric_before * 100) }}%)</span>
+          {% endif %}
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+      <div class="flex flex-col gap-2 flex-shrink-0">
+        {% if not entry.orchestrated and entry.outcome == 'Positive' %}
+        <form action="/iqo/orchestrate/{{ entry.id }}" method="POST">
+          <button type="submit" class="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition w-full">✓ Orchestrate</button>
+        </form>
+        {% endif %}
+        <form action="/iqo/delete/{{ entry.id }}" method="POST" onsubmit="return confirm('Delete this entry?')">
+          <button type="submit" class="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-red-100 hover:text-red-600 transition w-full">Delete</button>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <div class="text-center py-12 text-gray-400 italic">No IQO entries yet. Start by logging your first experiment above.</div>
+    {% endfor %}
+  </div>
+</main>
+
+<script>
+async function fetchMetrics() {
+    const label = document.getElementById('metric_label').value;
+    const date = document.getElementsByName('week_start')[0].value;
+    const sku = document.getElementById('target_sku').value;
+
+    if (!label || !date) {
+        alert("Please enter a Metric Label and Week Starting date first.");
+        return;
+    }
+
+    const btn = event.target;
+    const originalText = btn.innerText;
+    btn.innerText = "...";
+    btn.disabled = true;
+
+    try {
+        const url = `/api/fetch-metric?metric_label=${encodeURIComponent(label)}&week_start=${date}&target_sku=${encodeURIComponent(sku)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.error) {
+            alert(data.error);
+        } else {
+            document.getElementsByName('metric_before')[0].value = data.before;
+            document.getElementsByName('metric_after')[0].value = data.after;
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Failed to fetch metrics.");
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
+}
+</script>
+</body>
+</html>

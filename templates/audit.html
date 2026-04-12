@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Data - Kareena Financial</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased">
+<header class="bg-white shadow-sm sticky top-0 z-50">
+  <div class="container mx-auto px-6 py-3 flex items-center gap-4 flex-wrap">
+    <h1 class="text-xl font-bold text-blue-900">Kareena Financial</h1>
+    <nav class="flex flex-wrap gap-2 text-sm">
+      <a href="/" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Dashboard</a>
+      <a href="/sku-insights" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">SKU Insights</a>
+      <a href="/advertising" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Advertising</a>
+      <a href="/reconciliation" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Reconciliation</a>
+      <a href="/promotions" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Promotions</a>
+      <a href="/iqo" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">IQO Log</a>
+      <a href="/board" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Board</a>
+      <a href="/sop" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">SOP</a>
+      <a href="/audit" class="text-blue-600 font-semibold px-3 py-1 rounded-lg bg-blue-50 transition">Upload</a>
+      <a href="/admin" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Admin</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container mx-auto px-6 py-10 max-w-3xl">
+  <header class="mb-10">
+    <h2 class="text-3xl font-extrabold text-gray-900 leading-tight">Monthly Data Upload</h2>
+    <p class="text-gray-500 mt-2">Upload your Amazon reports to sync historical data and generate health audits. Each slot accepts specific file types.</p>
+  </header>
+
+  <form action="/upload-manual" method="POST" enctype="multipart/form-data" class="space-y-6">
+    <!-- Month Selection Card -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="p-2 bg-blue-50 text-blue-600 rounded-lg text-lg">📅</span>
+        <h3 class="font-bold text-gray-800">Audit Month</h3>
+      </div>
+      <input type="month" name="month" id="monthPicker" required 
+             class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-blue-50 outline-none transition-all">
+      <p class="text-xs text-gray-400 mt-2">Select the period these reports belong to. Defaults to previous month.</p>
+    </div>
+
+    <!-- Reports Upload Card -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 space-y-8">
+      <!-- Settlement -->
+      <div class="space-y-2">
+        <label class="flex items-center justify-between">
+          <span class="font-bold text-gray-800 flex items-center gap-2">
+            <span class="text-orange-500">💰</span> Settlement Report
+          </span>
+          <span class="text-[10px] font-bold uppercase tracking-wider bg-orange-50 text-orange-600 px-2 py-0.5 rounded">Required</span>
+        </label>
+        <p class="text-xs text-gray-500 italic">Use 'Monthly Report_Transaction_All Transactions.csv' (DETAILED version).</p>
+        <input type="file" name="settlement" accept=".csv" required 
+               class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+      </div>
+
+      <hr class="border-gray-50">
+
+      <!-- Deferred -->
+      <div class="space-y-2">
+        <label class="flex items-center justify-between">
+          <span class="font-bold text-gray-800 flex items-center gap-2">
+            <span class="text-indigo-500">⏱️</span> Deferred Transactions
+          </span>
+          <span class="text-[10px] font-bold uppercase tracking-wider bg-gray-50 text-gray-400 px-2 py-0.5 rounded">Optional</span>
+        </label>
+        <input type="file" name="deferred" accept=".csv" 
+               class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-50 file:text-gray-600 hover:file:bg-gray-100 cursor-pointer">
+      </div>
+
+      <hr class="border-gray-50">
+
+      <!-- Business -->
+      <div class="space-y-2">
+        <label class="flex items-center justify-between">
+          <span class="font-bold text-gray-800 flex items-center gap-2">
+            <span class="text-blue-500">📈</span> Business Report
+          </span>
+          <span class="text-[10px] font-bold uppercase tracking-wider bg-gray-50 text-gray-400 px-2 py-0.5 rounded">Optional</span>
+        </label>
+        <p class="text-xs text-gray-500 italic">For Sessions, Page Views, and ASIN-level Conversion Rates.</p>
+        <input type="file" name="business" accept=".csv" 
+               class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-50 file:text-gray-600 hover:file:bg-gray-100 cursor-pointer">
+      </div>
+
+      <hr class="border-gray-50">
+
+      <!-- Ads -->
+      <div class="space-y-2">
+        <label class="flex items-center justify-between">
+          <span class="font-bold text-gray-800 flex items-center gap-2">
+            <span class="text-yellow-500">📣</span> Advertising Report
+          </span>
+          <span class="text-[10px] font-bold uppercase tracking-wider bg-gray-50 text-gray-400 px-2 py-0.5 rounded">Optional</span>
+        </label>
+        <p class="text-xs text-gray-500 italic">Sponsored Products search term report (CSV or XLSX).</p>
+        <input type="file" name="ads" accept=".csv,.xlsx" 
+               class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-50 file:text-gray-600 hover:file:bg-gray-100 cursor-pointer">
+      </div>
+
+      <hr class="border-gray-50">
+
+      <!-- Returns -->
+      <div class="space-y-2">
+        <label class="flex items-center justify-between">
+          <span class="font-bold text-gray-800 flex items-center gap-2">
+            <span class="text-red-500">🔄</span> Returns Report
+          </span>
+          <span class="text-[10px] font-bold uppercase tracking-wider bg-gray-50 text-gray-400 px-2 py-0.5 rounded">Optional</span>
+        </label>
+        <p class="text-xs text-gray-500 italic">XML export of return reasons and refund amounts.</p>
+        <input type="file" name="returns" accept=".xml" 
+               class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-50 file:text-gray-600 hover:file:bg-gray-100 cursor-pointer">
+      </div>
+    </div>
+
+    <button type="submit" 
+            class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3">
+      🚀 Upload & Sync to Dashboard
+    </button>
+  </form>
+</main>
+
+<script>
+    // Default month picker to previous month
+    const now = new Date();
+    const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    document.getElementById('monthPicker').value = prev.toISOString().slice(0, 7);
+</script>
+</body>
+</html>

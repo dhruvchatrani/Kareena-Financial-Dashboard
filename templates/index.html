@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kareena Financial Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased">
+<header class="bg-white shadow-sm sticky top-0 z-50">
+  <div class="container mx-auto px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-3">
+    <div class="flex items-center gap-4 flex-wrap">
+      <h1 class="text-xl font-bold text-blue-900">Kareena Financial</h1>
+      <nav class="flex flex-wrap gap-2 text-sm">
+        <a href="/" class="text-blue-600 font-semibold px-3 py-1 rounded-lg bg-blue-50 transition">Dashboard</a>
+        <a href="/sku-insights" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">SKU Insights</a>
+        <a href="/advertising" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Advertising</a>
+        <a href="/reconciliation" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Reconciliation</a>
+        <a href="/promotions" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Promotions</a>
+        <a href="/iqo" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">IQO Log</a>
+        <a href="/board" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Board</a>
+        <a href="/sop" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">SOP</a>
+        <a href="/audit" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Upload</a>
+        <a href="/admin" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Admin</a>
+      </nav>
+    </div>
+    <form method="GET" action="/" class="flex items-center gap-2 flex-wrap">
+      <input type="date" name="start_date" value="{{ start_date }}" class="border rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+      <span class="text-gray-400 text-sm">to</span>
+      <input type="date" name="end_date" value="{{ end_date }}" class="border rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+      <button type="submit" class="bg-blue-600 text-white text-sm px-4 py-1.5 rounded-lg hover:bg-blue-700 transition">Filter</button>
+    </form>
+  </div>
+</header>
+
+<main class="container mx-auto px-6 py-6 space-y-8">
+
+  <!-- KPI Cards -->
+  <section>
+    <h2 class="text-lg font-bold text-gray-700 mb-4">Key Metrics</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      {% set cards = [
+        ('Total Sales', summary.Sales, 'blue', '₹'),
+        ('Net Income', summary.Net_Income, 'green' if summary.Net_Income >= 0 else 'red', '₹'),
+        ('COGS', summary.COGS, 'red', '₹'),
+        ('Ads Cost', summary.Ads_Cost, 'orange', '₹'),
+        ('Refunds', summary.Refunds, 'red', '₹'),
+        ('Units Sold', summary.Units_Sold, 'blue', ''),
+      ] %}
+      {% for label, val, color, prefix in cards %}
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition">
+        <p class="text-xs font-medium text-gray-500 mb-1">{{ label }}</p>
+        <p class="text-xl font-bold text-{{ color }}-600 truncate">{{ prefix }}{{ "{:,.0f}".format(val) if prefix == '₹' else "{:,}".format(val | int) }}</p>
+      </div>
+      {% endfor %}
+      <!-- True Profit / Sale card with tooltip -->
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition">
+        <div class="group relative inline-block">
+          <p class="text-xs font-medium text-gray-500 mb-1 cursor-help underline decoration-dotted">True Profit / Sale</p>
+          <span class="hidden group-hover:block absolute z-50 bg-gray-800 text-white text-xs rounded p-2 bottom-full mb-2 w-48 text-center shadow-lg">Formula: Net Income / Gross Units Sold</span>
+        </div>
+        <p class="text-xl font-bold {% if summary.Profit_Per_Sale >= 0 %}text-green-600{% else %}text-red-600{% endif %} truncate">₹{{ "{:,.0f}".format(summary.Profit_Per_Sale) }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Derived Metrics Row -->
+  <section>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <!-- Gross Margin -->
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+        <div class="group relative inline-block">
+          <p class="text-xs text-gray-500 mb-1 cursor-help underline decoration-dotted">Gross Margin</p>
+          <span class="hidden group-hover:block absolute z-50 bg-gray-800 text-white text-xs rounded p-2 bottom-full mb-2 w-52 text-center shadow-lg">Formula: (Sales + Reimbursements - Refunds - COGS - FBA - Selling Fees - Promotions - Other Fees) / Sales</span>
+        </div>
+        <p class="text-xl font-bold {% if summary.Gross_Margin_Pct >= 30 %}text-green-600{% elif summary.Gross_Margin_Pct >= 15 %}text-yellow-600{% else %}text-red-600{% endif %}">{{ summary.Gross_Margin_Pct }}%</p>
+      </div>
+      <!-- Net Margin -->
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+        <div class="group relative inline-block">
+          <p class="text-xs text-gray-500 mb-1 cursor-help underline decoration-dotted">Net Margin</p>
+          <span class="hidden group-hover:block absolute z-50 bg-gray-800 text-white text-xs rounded p-2 bottom-full mb-2 w-48 text-center shadow-lg">Formula: Net Income / Gross Sales</span>
+        </div>
+        <p class="text-xl font-bold {% if summary.Net_Margin_Pct >= 15 %}text-green-600{% elif summary.Net_Margin_Pct >= 5 %}text-yellow-600{% else %}text-red-600{% endif %}">{{ summary.Net_Margin_Pct }}%</p>
+      </div>
+      <!-- TACOS -->
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+        <div class="group relative inline-block">
+          <p class="text-xs text-gray-500 mb-1 cursor-help underline decoration-dotted">TACOS</p>
+          <span class="hidden group-hover:block absolute z-50 bg-gray-800 text-white text-xs rounded p-2 bottom-full mb-2 w-48 text-center shadow-lg">Formula: Total Ad Spend / Gross Sales</span>
+        </div>
+        <p class="text-xl font-bold {% if summary.TACOS <= 10 %}text-green-600{% elif summary.TACOS <= 15 %}text-yellow-600{% else %}text-red-600{% endif %}">{{ summary.TACOS }}%</p>
+      </div>
+      <!-- ACOS -->
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+        <div class="group relative inline-block">
+          <p class="text-xs text-gray-500 mb-1 cursor-help underline decoration-dotted">ACOS</p>
+          <span class="hidden group-hover:block absolute z-50 bg-gray-800 text-white text-xs rounded p-2 bottom-full mb-2 w-48 text-center shadow-lg">Formula: Ad Spend / Ad-Attributed Sales</span>
+        </div>
+        <p class="text-xl font-bold {% if summary.ACOS <= 20 %}text-green-600{% elif summary.ACOS <= 35 %}text-yellow-600{% else %}text-red-600{% endif %}">{{ summary.ACOS }}%</p>
+      </div>
+      <!-- Return Rate -->
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+        <div class="group relative inline-block">
+          <p class="text-xs text-gray-500 mb-1 cursor-help underline decoration-dotted">Return Rate</p>
+          <span class="hidden group-hover:block absolute z-50 bg-gray-800 text-white text-xs rounded p-2 bottom-full mb-2 w-48 text-center shadow-lg">Formula: Total Returns / Units Sold</span>
+        </div>
+        <p class="text-xl font-bold {% if summary.Return_Pct <= 3 %}text-green-600{% elif summary.Return_Pct <= 5 %}text-yellow-600{% else %}text-red-600{% endif %}">{{ summary.Return_Pct }}%</p>
+      </div>
+      <!-- ROI -->
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+        <div class="group relative inline-block">
+          <p class="text-xs text-gray-500 mb-1 cursor-help underline decoration-dotted">ROI</p>
+          <span class="hidden group-hover:block absolute z-50 bg-gray-800 text-white text-xs rounded p-2 bottom-full mb-2 w-48 text-center shadow-lg">Formula: Net Income / Total COGS</span>
+        </div>
+        <p class="text-xl font-bold {% if summary.ROI >= 20 %}text-green-600{% elif summary.ROI >= 0 %}text-yellow-600{% else %}text-red-600{% endif %}">{{ summary.ROI }}%</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Table -->
+  {% if comparison and comparison.comparison %}
+  <section class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+    <h2 class="text-lg font-bold text-gray-700 mb-4">Period Comparisons</h2>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-200">
+            <th class="text-left py-2 px-3 text-gray-500 font-medium">Metric</th>
+            <th class="text-right py-2 px-3 text-gray-700 font-semibold">Current</th>
+            <th class="text-right py-2 px-3 text-gray-500 font-medium">Prev Period</th>
+            <th class="text-right py-2 px-3 text-gray-500 font-medium">MoM Δ</th>
+            <th class="text-right py-2 px-3 text-gray-500 font-medium">Last Year</th>
+            <th class="text-right py-2 px-3 text-gray-500 font-medium">YoY Δ</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for key, data in comparison.comparison.items() %}
+          <tr class="hover:bg-gray-50">
+            <td class="py-2 px-3 font-medium text-gray-700">{{ key.replace('_', ' ') }}</td>
+            <td class="py-2 px-3 text-right font-semibold">
+              {% if key in ['TACOS', 'Return_Pct'] %}{{ data.current }}%
+              {% elif key == 'Units_Sold' %}{{ "{:,}".format(data.current | int) }}
+              {% else %}₹{{ "{:,.0f}".format(data.current) }}{% endif %}
+            </td>
+            <td class="py-2 px-3 text-right text-gray-500">
+              {% if key in ['TACOS', 'Return_Pct'] %}{{ data.mom }}%
+              {% elif key == 'Units_Sold' %}{{ "{:,}".format(data.mom | int) }}
+              {% else %}₹{{ "{:,.0f}".format(data.mom) }}{% endif %}
+            </td>
+            <td class="py-2 px-3 text-right font-medium {% if data.mom_pct is not none %}{% if data.mom_pct > 0 %}text-green-600{% elif data.mom_pct < 0 %}text-red-600{% else %}text-gray-400{% endif %}{% else %}text-gray-300{% endif %}">
+              {% if data.mom_pct is not none %}{{ "+" if data.mom_pct > 0 else "" }}{{ data.mom_pct }}%{% else %}—{% endif %}
+            </td>
+            <td class="py-2 px-3 text-right text-gray-500">
+              {% if key in ['TACOS', 'Return_Pct'] %}{{ data.yoy }}%
+              {% elif key == 'Units_Sold' %}{{ "{:,}".format(data.yoy | int) }}
+              {% else %}₹{{ "{:,.0f}".format(data.yoy) }}{% endif %}
+            </td>
+            <td class="py-2 px-3 text-right font-medium {% if data.yoy_pct is not none %}{% if data.yoy_pct > 0 %}text-green-600{% elif data.yoy_pct < 0 %}text-red-600{% else %}text-gray-400{% endif %}{% else %}text-gray-300{% endif %}">
+              {% if data.yoy_pct is not none %}{{ "+" if data.yoy_pct > 0 else "" }}{{ data.yoy_pct }}%{% else %}—{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="text-xs text-gray-400 mt-3">MoM = previous same-length period · YoY = same period last year</p>
+  </section>
+  {% endif %}
+
+  <!-- Charts -->
+  <section>
+    <h2 class="text-lg font-bold text-gray-700 mb-4">Visual Insights</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <h3 class="font-semibold text-gray-700 mb-3">Daily Sales Trend</h3>
+        <div id="salesChart" class="h-64"></div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <h3 class="font-semibold text-gray-700 mb-3">Disbursements (Amazon Payouts)</h3>
+        <div id="disbChart" class="h-64"></div>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <h3 class="font-semibold text-gray-700 mb-3">Other Metrics</h3>
+        <div class="grid grid-cols-2 gap-4 pt-4">
+          <div class="text-center p-4 bg-indigo-50 rounded-lg">
+            <p class="text-xs text-indigo-500 font-medium">Sessions</p>
+            <p class="text-2xl font-bold text-indigo-700">{{ "{:,}".format(summary.Sessions | int) }}</p>
+          </div>
+          <div class="text-center p-4 bg-purple-50 rounded-lg">
+            <p class="text-xs text-purple-500 font-medium">Page Views</p>
+            <p class="text-2xl font-bold text-purple-700">{{ "{:,}".format(summary.Page_Views | int) }}</p>
+          </div>
+          <div class="text-center p-4 bg-teal-50 rounded-lg">
+            <p class="text-xs text-teal-500 font-medium">Unit/Session %</p>
+            <p class="text-2xl font-bold text-teal-700">{{ summary.Unit_Session_Pct }}%</p>
+          </div>
+          <div class="text-center p-4 bg-orange-50 rounded-lg">
+            <p class="text-xs text-orange-500 font-medium">Profit/Unit</p>
+            <p class="text-2xl font-bold text-orange-700">₹{{ "{:,.0f}".format(summary.Profit_Per_Unit) }}</p>
+          </div>
+          <div class="text-center p-4 bg-blue-50 rounded-lg col-span-2">
+            <p class="text-xs text-blue-500 font-medium">Pending Deferred (Amazon Owes)</p>
+            <p class="text-2xl font-bold text-blue-700">₹{{ "{:,.0f}".format(summary.Owed_Deferred) }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="container mx-auto px-6 py-8 border-t border-gray-200 mt-12">
+  <details class="group bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <summary class="list-none cursor-pointer p-4 flex justify-between items-center hover:bg-gray-50 transition">
+      <span class="font-bold text-gray-700 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+        </svg>
+        Metric Definitions & Formulas
+      </span>
+      <span class="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
+    </summary>
+    <div class="px-6 py-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm border-t border-gray-50">
+      <div>
+        <p class="font-semibold text-gray-800 mb-1">Net Margin</p>
+        <p class="text-gray-500 font-mono text-xs mb-1">Net Income / Gross Sales</p>
+        <p class="text-gray-400 text-xs italic">Percentage of revenue remaining after all costs and taxes.</p>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-800 mb-1">ROI (Return on Investment)</p>
+        <p class="text-gray-500 font-mono text-xs mb-1">Net Income / Total COGS</p>
+        <p class="text-gray-400 text-xs italic">Return generated on inventory capital deployed.</p>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-800 mb-1">ACOS (Advertising Cost of Sales)</p>
+        <p class="text-gray-500 font-mono text-xs mb-1">Ad Spend / Ad-Attributed Sales</p>
+        <p class="text-gray-400 text-xs italic">Efficiency of ad-spend relative to the sales it generated.</p>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-800 mb-1">TACOS (Total ACOS)</p>
+        <p class="text-gray-500 font-mono text-xs mb-1">Total Ad Spend / Gross Sales</p>
+        <p class="text-gray-400 text-xs italic">Impact of advertising on total business revenue.</p>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-800 mb-1">Total Blended Profit</p>
+        <p class="text-gray-500 font-mono text-xs mb-1">Net Income - Allocated Operating Expenses</p>
+        <p class="text-gray-400 text-xs italic">Profit after factoring in overheads like salaries, rent, and software.</p>
+      </div>
+    </div>
+  </details>
+</footer>
+
+<script>
+const daily = {{ daily_data | tojson | safe }};
+const summary = {{ summary | tojson | safe }};
+const disb = {{ disbursements | tojson | safe }};
+const cfg = {responsive: true};
+const baseLayout = {margin:{l:50,r:20,t:10,b:50}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{family:'sans-serif',size:11}};
+
+if (daily && daily.length > 0) {
+  Plotly.newPlot('salesChart', [{
+    x: daily.map(d=>d.day), y: daily.map(d=>d.sales),
+    type:'scatter', mode:'lines+markers', fill:'tozeroy',
+    line:{color:'#2563eb',width:2}, fillcolor:'rgba(37,99,235,0.08)'
+  }], {...baseLayout, xaxis:{gridcolor:'#f3f4f6'}, yaxis:{title:'₹', gridcolor:'#f3f4f6'}}, cfg);
+} else {
+  document.getElementById('salesChart').innerHTML = '<div class="h-full flex items-center justify-center text-gray-400 text-sm italic">No data for selected range</div>';
+}
+
+
+if (disb && disb.length > 0) {
+  Plotly.newPlot('disbChart', [{
+    x: disb.map(d=>d.date), y: disb.map(d=>d.amount),
+    type:'bar', marker:{color:'#10b981'},
+    text: disb.map(d=>d.description), hovertemplate:'%{x}<br>₹%{y:,.2f}<br>%{text}<extra></extra>'
+  }], {...baseLayout, xaxis:{gridcolor:'#f3f4f6'}, yaxis:{title:'₹', gridcolor:'#f3f4f6'}}, cfg);
+} else {
+  document.getElementById('disbChart').innerHTML = '<div class="h-full flex items-center justify-center text-gray-400 text-sm italic">No disbursements found — upload settlement report</div>';
+}
+</script>
+</body>
+</html>

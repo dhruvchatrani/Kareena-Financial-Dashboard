@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advertising - Kareena Financial</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased">
+<header class="bg-white shadow-sm sticky top-0 z-50">
+  <div class="container mx-auto px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-3">
+    <div class="flex items-center gap-4 flex-wrap">
+      <h1 class="text-xl font-bold text-blue-900">Kareena Financial</h1>
+      <nav class="flex flex-wrap gap-2 text-sm">
+        <a href="/" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Dashboard</a>
+        <a href="/sku-insights" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">SKU Insights</a>
+        <a href="/advertising" class="text-blue-600 font-semibold px-3 py-1 rounded-lg bg-blue-50 transition">Advertising</a>
+        <a href="/reconciliation" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Reconciliation</a>
+        <a href="/promotions" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Promotions</a>
+        <a href="/iqo" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">IQO Log</a>
+        <a href="/board" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Board</a>
+        <a href="/sop" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">SOP</a>
+        <a href="/audit" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Upload</a>
+        <a href="/admin" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Admin</a>
+      </nav>
+    </div>
+    <form method="GET" action="/advertising" class="flex items-center gap-2">
+      <input type="date" name="start_date" value="{{ start_date }}" class="border rounded-lg px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+      <span class="text-gray-400 text-sm">to</span>
+      <input type="date" name="end_date" value="{{ end_date }}" class="border rounded-lg px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+      <input type="text" name="brand" value="{{ brand or '' }}" placeholder="Filter Brand" class="border rounded-lg px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 w-28">
+      <input type="text" name="sku" value="{{ sku or '' }}" placeholder="Filter SKU" class="border rounded-lg px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 w-28">
+      <button type="submit" class="bg-blue-600 text-white text-sm px-4 py-1.5 rounded-lg hover:bg-blue-700">Filter</button>
+    </form>
+  </div>
+</header>
+
+<main class="container mx-auto px-6 py-6 space-y-8">
+  <h2 class="text-2xl font-bold text-gray-800">Advertising Dashboard</h2>
+
+  {% if ads %}
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+    {% set akpis = [
+      ('Impressions', ads.total_impressions, '', 'blue'),
+      ('Clicks', ads.total_clicks, '', 'indigo'),
+      ('CTR', ads.ctr, '%', 'purple'),
+      ('Total Spend', ads.total_spend, '₹', 'orange'),
+      ('Ad Sales (7d)', ads.total_sales, '₹', 'green'),
+    ] %}
+    {% for label, val, suffix, color in akpis %}
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+      <p class="text-xs text-gray-500 mb-1">{{ label }}</p>
+      <p class="text-2xl font-bold text-{{ color }}-600">
+        {% if suffix == '₹' %}₹{{ "{:,.0f}".format(val) }}
+        {% elif suffix == '%' %}{{ val }}%
+        {% else %}{{ "{:,}".format(val | int) }}{% endif %}
+      </p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+    {% set akpis2 = [
+      ('ACOS', ads.acos, '%', 'red' if ads.acos > 35 else ('yellow' if ads.acos > 20 else 'green')),
+      ('ROAS', ads.roas, 'x', 'green' if ads.roas >= 3 else ('yellow' if ads.roas >= 1.5 else 'red')),
+      ('CPC', ads.cpc, '₹', 'blue'),
+      ('CVR', ads.cvr, '%', 'teal'),
+      ('Total Orders', ads.total_orders, '', 'gray'),
+    ] %}
+    {% for label, val, suffix, color in akpis2 %}
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+      <p class="text-xs text-gray-500 mb-1">{{ label }}</p>
+      <p class="text-2xl font-bold text-{{ color }}-600">
+        {% if suffix == '₹' %}₹{{ "{:,.2f}".format(val) }}
+        {% elif suffix == '%' %}{{ val }}%
+        {% elif suffix == 'x' %}{{ val }}x
+        {% else %}{{ "{:,}".format(val | int) }}{% endif %}
+      </p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Charts -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+      <h3 class="font-semibold text-gray-700 mb-3">Daily Spend</h3>
+      <div id="spendChart" class="h-64"></div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+      <h3 class="font-semibold text-gray-700 mb-3">Daily Sales (7d)</h3>
+      <div id="salesChart" class="h-64"></div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+      <h3 class="font-semibold text-gray-700 mb-3">Daily Impressions</h3>
+      <div id="impChart" class="h-64"></div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+      <h3 class="font-semibold text-gray-700 mb-3">Daily Clicks</h3>
+      <div id="clicksChart" class="h-64"></div>
+    </div>
+  </div>
+
+  <!-- Top Search Terms -->
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+    <h3 class="font-semibold text-gray-700 mb-4">Top Search Terms by conversion Rate (CVR)</h3>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Search Term</th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Impressions</th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Clicks</th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Spend</th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Sales (7d)</th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">ACOS</th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Orders</th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">CVR</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for t in ads.top_terms %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-2 font-medium text-gray-800 max-w-xs truncate">{{ t.term }}</td>
+            <td class="px-4 py-2 text-right text-gray-600">{{ "{:,}".format(t.impressions) }}</td>
+            <td class="px-4 py-2 text-right text-gray-600">{{ "{:,}".format(t.clicks) }}</td>
+            <td class="px-4 py-2 text-right text-orange-600 font-medium">₹{{ "{:,.2f}".format(t.spend) }}</td>
+            <td class="px-4 py-2 text-right text-green-600 font-medium">₹{{ "{:,.2f}".format(t.sales) }}</td>
+            <td class="px-4 py-2 text-right font-semibold {% if t.acos <= 20 %}text-green-600{% elif t.acos <= 35 %}text-yellow-600{% else %}text-red-600{% endif %}">{{ t.acos }}%</td>
+            <td class="px-4 py-2 text-right text-gray-600">{{ t.orders }}</td>
+            <td class="px-4 py-2 text-right text-gray-600">{{ t.cvr }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-8 text-center">
+    <p class="text-yellow-800 font-semibold text-lg mb-2">No advertising data found for this period</p>
+    <p class="text-yellow-600 text-sm mb-4">Upload your Sponsored Products search term report (XLSX) via the Monthly Audit page.</p>
+    <a href="/audit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-semibold">Go to Upload</a>
+  </div>
+  {% endif %}
+</main>
+
+<script>
+const daily = {{ (ads.daily_trend if ads else []) | tojson | safe }};
+const cfg = {responsive:true};
+const L = {margin:{l:50,r:20,t:10,b:50}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{size:11}};
+
+if (daily && daily.length > 0) {
+  const xDates = daily.map(d => d.date);
+
+  Plotly.newPlot('spendChart', [
+    {x: xDates, y: daily.map(d=>d.spend), name: 'Spend', type: 'bar', marker: {color: '#f97316'}}
+  ], {...L, showlegend: false, yaxis: {title: 'Spend ₹', gridcolor: '#f3f4f6', rangemode: 'tozero'}}, cfg);
+
+  Plotly.newPlot('salesChart', [
+    {x: xDates, y: daily.map(d=>d.sales), name: 'Sales (7d)', type: 'scatter', mode: 'lines+markers', line: {color: '#10b981', width: 2}}
+  ], {...L, showlegend: false, yaxis: {title: 'Sales ₹', gridcolor: '#f3f4f6', rangemode: 'tozero'}}, cfg);
+
+  Plotly.newPlot('impChart', [
+    {x: xDates, y: daily.map(d=>d.impressions), name: 'Impressions', type: 'bar', marker: {color: '#6366f1'}}
+  ], {...L, showlegend: false, yaxis: {title: 'Impressions', gridcolor: '#f3f4f6', rangemode: 'tozero'}}, cfg);
+
+  Plotly.newPlot('clicksChart', [
+    {x: xDates, y: daily.map(d=>d.clicks), name: 'Clicks', type: 'scatter', mode: 'lines+markers', line: {color: '#ec4899', width: 2}}
+  ], {...L, showlegend: false, yaxis: {title: 'Clicks', gridcolor: '#f3f4f6', rangemode: 'tozero'}}, cfg);
+}
+</script>
+</body>
+</html>

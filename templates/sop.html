@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SOP - Kareena Financial</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .prose h1 { font-size: 2.25rem; font-weight: 800; color: #1e3a8a; margin-bottom: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; }
+    .prose h2 { font-size: 1.5rem; font-weight: 700; color: #1e40af; margin-top: 2rem; margin-bottom: 1rem; }
+    .prose h3 { font-size: 1.25rem; font-weight: 700; color: #1e3a8a; margin-top: 1.5rem; margin-bottom: 0.75rem; background: #f3f4f6; padding: 0.5rem 1rem; border-radius: 8px; border-left: 4px solid #3b82f6; }
+    .prose p { margin-bottom: 1rem; line-height: 1.6; color: #374151; }
+    .prose ul, .prose ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+    .prose li { margin-bottom: 0.5rem; }
+    .prose strong { color: #111827; }
+    .prose a { color: #2563eb; text-decoration: underline; font-weight: 500; }
+    .prose hr { border: 0; border-top: 1px solid #e5e7eb; margin: 2rem 0; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased">
+<header class="bg-white shadow-sm sticky top-0 z-50">
+  <div class="container mx-auto px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
+    <div class="flex items-center gap-4 flex-wrap">
+      <h1 class="text-xl font-bold text-blue-900">Kareena Financial</h1>
+      <nav class="flex flex-wrap gap-2 text-sm">
+        <a href="/" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Dashboard</a>
+        <a href="/sku-insights" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">SKU Insights</a>
+        <a href="/advertising" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Advertising</a>
+        <a href="/reconciliation" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Reconciliation</a>
+        <a href="/promotions" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Promotions</a>
+        <a href="/iqo" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">IQO Log</a>
+        <a href="/board" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Board</a>
+        <a href="/sop" class="text-blue-600 font-semibold px-3 py-1 rounded-lg bg-blue-50 transition">SOP</a>
+        <a href="/audit" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Upload</a>
+        <a href="/admin" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Admin</a>
+      </nav>
+    </div>
+    <button onclick="toggleEdit()" class="bg-blue-600 text-white px-4 py-1.5 rounded-lg hover:bg-blue-700 text-sm font-semibold transition shadow-sm hover:shadow-md">
+      ✎ Edit SOP
+    </button>
+  </div>
+</header>
+
+<main class="container mx-auto px-6 py-10 max-w-4xl">
+  <!-- View Mode -->
+  <div id="viewMode" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12 mb-8 animate-in fade-in duration-500">
+    <div class="prose max-w-none">
+      {{ content_html | safe }}
+    </div>
+  </div>
+
+  <!-- Edit Mode -->
+  <div id="editMode" class="hidden animate-in slide-in-from-bottom-4 duration-300">
+    <div class="bg-white rounded-2xl shadow-xl border border-blue-100 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-800">Editing SOP (Markdown)</h2>
+        <button onclick="toggleEdit()" class="text-gray-400 hover:text-gray-600">Cancel</button>
+      </div>
+      <form action="/sop/update" method="POST">
+        <textarea name="content" rows="25" class="w-full border border-gray-200 rounded-xl p-6 font-mono text-sm focus:ring-4 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all resize-none">{{ content_md }}</textarea>
+        <div class="mt-4 flex justify-end">
+          <button type="submit" class="bg-green-600 text-white px-8 py-3 rounded-xl hover:bg-green-700 font-bold shadow-lg hover:shadow-xl transition-all active:scale-95">
+            💾 Save SOP Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+
+<script>
+function toggleEdit() {
+    const view = document.getElementById('viewMode');
+    const edit = document.getElementById('editMode');
+    const btn = document.querySelector('button[onclick="toggleEdit()"]');
+    
+    if (view.classList.contains('hidden')) {
+        view.classList.remove('hidden');
+        edit.classList.add('hidden');
+        btn.innerText = '✎ Edit SOP';
+    } else {
+        view.classList.add('hidden');
+        edit.classList.remove('hidden');
+        btn.innerText = '👁 View SOP';
+    }
+}
+</script>
+</body>
+</html>

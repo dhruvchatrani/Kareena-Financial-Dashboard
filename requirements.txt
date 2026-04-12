@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+jinja2
+python-multipart
+sqlalchemy
+pandas
+openpyxl
+requests
+python-dotenv
+markdown
