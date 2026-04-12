@@ -62,3 +62,4 @@ Step-by-step guide for monthly financial review. Follow in order.
 - **TACOS:** Max 15%
 - **Return Rate:** Max 5%
 - **Min Profit/Unit:** ₹200
+
