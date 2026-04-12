@@ -35,7 +35,7 @@
       </nav>
     </div>
     <button onclick="toggleEdit()" class="bg-blue-600 text-white px-4 py-1.5 rounded-lg hover:bg-blue-700 text-sm font-semibold transition shadow-sm hover:shadow-md">
-      ✎ Edit SOP
+       Edit SOP
     </button>
   </div>
 </header>
@@ -59,7 +59,7 @@
         <textarea name="content" rows="25" class="w-full border border-gray-200 rounded-xl p-6 font-mono text-sm focus:ring-4 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all resize-none">{{ content_md }}</textarea>
         <div class="mt-4 flex justify-end">
           <button type="submit" class="bg-green-600 text-white px-8 py-3 rounded-xl hover:bg-green-700 font-bold shadow-lg hover:shadow-xl transition-all active:scale-95">
-            💾 Save SOP Changes
+             Save SOP Changes
           </button>
         </div>
       </form>
@@ -76,11 +76,11 @@ function toggleEdit() {
     if (view.classList.contains('hidden')) {
         view.classList.remove('hidden');
         edit.classList.add('hidden');
-        btn.innerText = '✎ Edit SOP';
+        btn.innerText = ' Edit SOP';
     } else {
         view.classList.add('hidden');
         edit.classList.remove('hidden');
-        btn.innerText = '👁 View SOP';
+        btn.innerText = ' View SOP';
     }
 }
 </script>

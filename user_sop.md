@@ -57,7 +57,7 @@ Step-by-step guide for monthly financial review. Follow in order.
 - Assign due dates and owners
 
 ---
-### 🔔 Alert Thresholds (configurable in Admin → Settings)
+###  Alert Thresholds (configurable in Admin → Settings)
 - **Conversion Rate:** Target ≥ 12%
 - **TACOS:** Max 15%
 - **Return Rate:** Max 5%

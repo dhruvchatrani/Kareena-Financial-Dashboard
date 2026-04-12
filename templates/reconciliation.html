@@ -36,7 +36,7 @@
   <div class="flex items-center justify-between">
     <h2 class="text-2xl font-bold text-gray-800">Does Amazon Owe Me Money?</h2>
     <span class="px-4 py-2 rounded-full font-bold text-sm {% if recon.status == 'OK' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
-      {{ '✅ Amazon Payout Verified' if recon.status == 'OK' else '⚠️ Discrepancy Found' }}
+      {{ ' Amazon Payout Verified' if recon.status == 'OK' else ' Discrepancy Found' }}
     </span>
   </div>
 
@@ -102,7 +102,7 @@
   <!-- Deferred -->
   {% if recon.total_deferred > 0 %}
   <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-5">
-    <h3 class="font-semibold text-indigo-800 mb-1">⏳ Deferred / In Reserve</h3>
+    <h3 class="font-semibold text-indigo-800 mb-1"> Deferred / In Reserve</h3>
     <p class="text-indigo-700">Amazon is holding <strong>₹{{ "{:,.2f}".format(recon.total_deferred) }}</strong> in reserve (orders still in return window). This will be disbursed after the return window closes.</p>
   </div>
   {% endif %}
@@ -110,7 +110,7 @@
   <!-- Potentially unreimbursed returns -->
   {% if recon.potentially_unreimbursed_count > 0 %}
   <div class="bg-red-50 border border-red-200 rounded-xl p-5">
-    <h3 class="font-semibold text-red-800 mb-2">⚠️ {{ recon.potentially_unreimbursed_count }} Refunded Orders With No Matching Reimbursement</h3>
+    <h3 class="font-semibold text-red-800 mb-2"> {{ recon.potentially_unreimbursed_count }} Refunded Orders With No Matching Reimbursement</h3>
     <p class="text-red-700 text-sm mb-3">These orders were refunded to the customer but no reimbursement event was found. Check if Amazon reimbursed you for damaged/lost FBA inventory.</p>
     <div class="flex flex-wrap gap-2">
       {% for order_id in recon.potentially_unreimbursed_orders %}

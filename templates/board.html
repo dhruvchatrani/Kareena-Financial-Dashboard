@@ -101,8 +101,8 @@
           {% if card.description %}<p class="text-xs text-gray-500 mb-2 leading-relaxed">{{ card.description }}</p>{% endif %}
           <div class="flex items-center justify-between mt-2">
             <div class="text-xs text-gray-400 space-y-0.5">
-              {% if card.assignee %}<div>👤 {{ card.assignee }}</div>{% endif %}
-              {% if card.due_date %}<div class="{% if card.due_date < datetime.date.today() %}text-red-500 font-medium{% endif %}">📅 {{ card.due_date.strftime('%d %b') }}</div>{% endif %}
+              {% if card.assignee %}<div> {{ card.assignee }}</div>{% endif %}
+              {% if card.due_date %}<div class="{% if card.due_date < datetime.date.today() %}text-red-500 font-medium{% endif %}"> {{ card.due_date.strftime('%d %b') }}</div>{% endif %}
             </div>
             <div class="flex gap-1">
               {% if col != 'Done' %}

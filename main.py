@@ -42,7 +42,7 @@ templates.env.globals.update(datetime=datetime)
 logging.basicConfig(level=logging.INFO)
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+#  Helpers 
 
 def _parse_dates(start_date, end_date):
     if not start_date or not end_date:
@@ -54,7 +54,7 @@ def _parse_dates(start_date, end_date):
     return start_date, end_date, parsed_start, parsed_end
 
 
-# ── Dashboard ─────────────────────────────────────────────────────────────────
+#  Dashboard 
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request, start_date: str = None, end_date: str = None, db: Session = Depends(get_db)):
@@ -92,7 +92,7 @@ async def index(request: Request, start_date: str = None, end_date: str = None, 
     })
 
 
-# ── SKU Insights ──────────────────────────────────────────────────────────────
+#  SKU Insights 
 
 @app.get("/sku-insights", response_class=HTMLResponse)
 async def sku_insights(request: Request, start_date: str = None, end_date: str = None, db: Session = Depends(get_db)):
@@ -120,7 +120,7 @@ async def sku_insights(request: Request, start_date: str = None, end_date: str =
     })
 
 
-# ── Advertising Dashboard ─────────────────────────────────────────────────────
+#  Advertising Dashboard 
 
 @app.get("/advertising", response_class=HTMLResponse)
 async def advertising(request: Request, start_date: str = None, end_date: str = None, sku: str = None, brand: str = None, db: Session = Depends(get_db)):
@@ -136,7 +136,7 @@ async def advertising(request: Request, start_date: str = None, end_date: str = 
     })
 
 
-# ── Reconciliation ────────────────────────────────────────────────────────────
+#  Reconciliation 
 
 @app.get("/reconciliation", response_class=HTMLResponse)
 async def reconciliation(request: Request, start_date: str = None, end_date: str = None, db: Session = Depends(get_db)):
@@ -154,7 +154,7 @@ async def reconciliation(request: Request, start_date: str = None, end_date: str
     })
 
 
-# ── IQO Log ───────────────────────────────────────────────────────────────────
+#  IQO Log 
 
 @app.get("/iqo", response_class=HTMLResponse)
 async def iqo_page(request: Request, db: Session = Depends(get_db)):
@@ -247,7 +247,7 @@ async def fetch_metric(metric_label: str, week_start: str, target_sku: Optional[
     }
 
 
-# ── Kanban Board ──────────────────────────────────────────────────────────────
+#  Kanban Board 
 
 @app.get("/board", response_class=HTMLResponse)
 async def board(request: Request, db: Session = Depends(get_db)):
@@ -313,7 +313,7 @@ async def board_delete(card_id: int, db: Session = Depends(get_db)):
     return RedirectResponse(url="/board", status_code=303)
 
 
-# ── Promotions ────────────────────────────────────────────────────────────────
+#  Promotions 
 
 @app.get("/promotions", response_class=HTMLResponse)
 async def promotions_page(request: Request, db: Session = Depends(get_db)):
@@ -361,7 +361,7 @@ async def promotions_delete(promo_id: int, db: Session = Depends(get_db)):
     return RedirectResponse(url="/promotions", status_code=303)
 
 
-# ── SOP ───────────────────────────────────────────────────────────────────────
+#  SOP 
 
 @app.get("/sop", response_class=HTMLResponse)
 async def sop_page(request: Request):
@@ -388,7 +388,7 @@ async def sop_update(content: str = Form(...)):
     return RedirectResponse(url="/sop", status_code=303)
 
 
-# ── Admin ─────────────────────────────────────────────────────────────────────
+#  Admin 
 
 @app.get("/admin", response_class=HTMLResponse)
 async def admin(request: Request, db: Session = Depends(get_db)):
@@ -545,7 +545,7 @@ async def update_settings(settings: SettingsUpdate):
     return {"status": "success"}
 
 
-# ── Audit / Upload ────────────────────────────────────────────────────────────
+#  Audit / Upload 
 
 @app.get("/audit", response_class=HTMLResponse)
 async def audit_page(request: Request):

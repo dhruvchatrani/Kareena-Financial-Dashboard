@@ -48,9 +48,9 @@
       <div>
         <label class="block text-xs font-medium text-gray-600 mb-1">Stage</label>
         <select name="stage" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="Innovate">🔵 Innovate</option>
-          <option value="Quantify">🟡 Quantify</option>
-          <option value="Orchestrate">🟢 Orchestrate</option>
+          <option value="Innovate"> Innovate</option>
+          <option value="Quantify"> Quantify</option>
+          <option value="Orchestrate"> Orchestrate</option>
         </select>
       </div>
       <div>
@@ -69,9 +69,9 @@
         <label class="block text-xs font-medium text-gray-600 mb-1">Outcome</label>
         <select name="outcome" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
           <option value="">— Pending —</option>
-          <option value="Positive">✅ Positive</option>
-          <option value="Neutral">⚪ Neutral</option>
-          <option value="Negative">❌ Negative</option>
+          <option value="Positive"> Positive</option>
+          <option value="Neutral"> Neutral</option>
+          <option value="Negative"> Negative</option>
         </select>
       </div>
       <div>
@@ -114,9 +114,9 @@
           <h4 class="font-semibold text-gray-800">{{ entry.title }}</h4>
           {% if entry.outcome %}
           <span class="text-sm flex-shrink-0">
-            {% if entry.outcome == 'Positive' %}✅ Positive
-            {% elif entry.outcome == 'Negative' %}❌ Negative
-            {% else %}⚪ Neutral{% endif %}
+            {% if entry.outcome == 'Positive' %} Positive
+            {% elif entry.outcome == 'Negative' %} Negative
+            {% else %} Neutral{% endif %}
           </span>
           {% endif %}
         </div>
@@ -138,7 +138,7 @@
       <div class="flex flex-col gap-2 flex-shrink-0">
         {% if not entry.orchestrated and entry.outcome == 'Positive' %}
         <form action="/iqo/orchestrate/{{ entry.id }}" method="POST">
-          <button type="submit" class="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition w-full">✓ Orchestrate</button>
+          <button type="submit" class="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition w-full"> Orchestrate</button>
         </form>
         {% endif %}
         <form action="/iqo/delete/{{ entry.id }}" method="POST" onsubmit="return confirm('Delete this entry?')">

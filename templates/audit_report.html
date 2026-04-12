@@ -212,7 +212,7 @@
         <main class="audit-card">
             {% if missing_keys %}
             <div class="data-warning no-print">
-                <span>⚠️</span>
+                <span></span>
                 <div>
                     <strong>Data Gap Detected:</strong> Following sources were missing: {{ missing_keys|join(', ') }}. Metrics and audit may be incomplete.
                 </div>
@@ -258,7 +258,7 @@
             <div class="flags-section">
                 {% for flag in audit.flags %}
                 <div class="flag-item">
-                    <span>⚠️</span> {{ flag }}
+                    <span></span> {{ flag }}
                 </div>
                 {% endfor %}
             </div>

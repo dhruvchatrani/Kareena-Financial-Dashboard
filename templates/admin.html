@@ -33,7 +33,7 @@
             <p class="text-gray-500 mt-1">Manage inventory, units costs, and overall system state.</p>
         </div>
         <a href="/admin/backup" class="inline-flex items-center gap-2 bg-gray-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm hover:bg-gray-900 transition-all hover:shadow-md active:scale-95">
-            💾 Backup Database (SQL)
+             Backup Database (SQL)
         </a>
     </div>
 
@@ -42,7 +42,7 @@
         <section class="bg-gradient-to-br from-blue-900 to-indigo-900 rounded-2xl shadow-xl p-8 text-white relative overflow-hidden transition hover:shadow-2xl hover:scale-[1.005]">
             <div class="relative z-10 flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <span class="p-3 bg-white/10 rounded-xl text-3xl">📊</span>
+                    <span class="p-3 bg-white/10 rounded-xl text-3xl"></span>
                     <div>
                         <h3 class="text-xl font-bold">Monthly Financial Audit</h3>
                         <p class="text-blue-200 text-sm">Upload your Amazon reports to sync data and generate a health audit.</p>
@@ -57,7 +57,7 @@
     <!-- Section: WhatsApp Data Import -->
     <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
         <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-gray-800">
-            <span class="p-2 bg-green-50 text-green-600 rounded-lg">📲</span>
+            <span class="p-2 bg-green-50 text-green-600 rounded-lg"></span>
             WhatsApp Data Import
         </h3>
         <p class="text-sm text-gray-500 mb-6 max-w-2xl">
@@ -65,7 +65,7 @@
         </p>
         <form action="/admin/import-whatsapp" method="POST">
             <button type="submit" class="bg-green-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-green-700 transition shadow-lg hover:shadow-xl flex items-center gap-2 active:scale-95">
-                🔄 Sync Historical Data
+                 Sync Historical Data
             </button>
         </form>
     </section>
@@ -74,7 +74,7 @@
         <!-- Section: Inventory -->
         <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-xl font-bold mb-6 flex items-center gap-2 text-gray-800">
-                <span class="p-2 bg-blue-50 text-blue-600 rounded-lg">📦</span>
+                <span class="p-2 bg-blue-50 text-blue-600 rounded-lg"></span>
                 Local Inventory
             </h3>
             <div class="overflow-x-auto">
@@ -110,7 +110,7 @@
         <!-- Section: COGS -->
         <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-xl font-bold mb-6 flex items-center gap-2 text-gray-800">
-                <span class="p-2 bg-green-50 text-green-600 rounded-lg">💰</span>
+                <span class="p-2 bg-green-50 text-green-600 rounded-lg"></span>
                 Active COGS
             </h3>
             <form action="/admin/cogs" method="POST" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
@@ -144,7 +144,7 @@
     <!-- Section: Expenses -->
     <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
         <h3 class="text-xl font-bold mb-6 flex items-center gap-2 text-gray-800">
-            <span class="p-2 bg-red-50 text-red-600 rounded-lg">💸</span>
+            <span class="p-2 bg-red-50 text-red-600 rounded-lg"></span>
             Log Business Expenses
         </h3>
         <form action="/admin/expense" method="POST" class="space-y-6">
@@ -177,7 +177,7 @@
         <hr class="border-gray-100 mb-12">
         <section class="bg-red-50 rounded-2xl border border-red-100 p-8">
             <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-red-800">
-                <span class="p-2 bg-red-100 text-red-600 rounded-lg">⚠️</span>
+                <span class="p-2 bg-red-100 text-red-600 rounded-lg"></span>
                 Danger Zone: System Reset
             </h3>
             <p class="text-red-700 text-sm mb-6 max-w-2xl">
@@ -187,7 +187,7 @@
             
             <form id="reset-form" action="/admin/reset-db" method="POST">
                 <button type="button" onclick="confirmReset()" class="bg-red-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-red-700 transition shadow-lg hover:shadow-xl active:scale-95">
-                    🗑️ Reset All Database Data
+                     Reset All Database Data
                 </button>
             </form>
         </section>
