@@ -12,7 +12,7 @@ echo.
 IF NOT EXIST "venv\Scripts\activate.bat" (
     echo [Setup] First time setup detected. Creating virtual environment...
     python -m venv venv
-    echo [Setup] Installing required dependencies (this may take a minute)...
+    echo [Setup] Installing required dependencies - this may take a minute...
     call venv\Scripts\activate.bat
     pip install -r requirements.txt
 ) ELSE (
@@ -24,6 +24,6 @@ start http://127.0.0.1:8000
 
 :: Start the FastAPI server
 echo [System] Dashboard is running. You can now use your browser.
-uvicorn main:app --host 127.0.0.1 --port 8000
+python -m uvicorn main:app --host 127.0.0.1 --port 8000
 
 pause

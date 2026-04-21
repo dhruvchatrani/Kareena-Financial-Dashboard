@@ -124,13 +124,27 @@
         {% if entry.metric_label %}
         <div class="mt-2 flex items-center gap-3 text-sm">
           <span class="text-gray-500">{{ entry.metric_label }}:</span>
-          {% if entry.metric_before is not none %}<span class="text-gray-600">Before: <strong>{{ entry.metric_before }}</strong></span>{% endif %}
-          {% if entry.metric_after is not none %}
-          <span>→</span>
-          <span class="{% if entry.metric_after > entry.metric_before %}text-green-600{% elif entry.metric_after < entry.metric_before %}text-red-600{% else %}text-gray-600{% endif %}">After: <strong>{{ entry.metric_after }}</strong></span>
-          {% if entry.metric_before and entry.metric_before != 0 %}
-          <span class="text-xs text-gray-400">({{ "+" if entry.metric_after > entry.metric_before else "" }}{{ "{:.1f}".format((entry.metric_after - entry.metric_before) / entry.metric_before * 100) }}%)</span>
+          
+          {% if entry.metric_before is not none %}
+            <span class="text-gray-600">Before: <strong>{{ entry.metric_before }}</strong></span>
+          {% else %}
+            <span class="text-gray-400 italic">Before: N/A</span>
           {% endif %}
+          
+          {% if entry.metric_after is not none %}
+            <span>→</span>
+            {% if entry.metric_before is not none %}
+              <span class="{% if entry.metric_after > entry.metric_before %}text-green-600{% elif entry.metric_after < entry.metric_before %}text-red-600{% else %}text-gray-600{% endif %}">
+                After: <strong>{{ entry.metric_after }}</strong>
+              </span>
+              {% if entry.metric_before != 0 %}
+                <span class="text-xs text-gray-400">
+                  ({{ "+" if entry.metric_after > entry.metric_before else "" }}{{ "{:.1f}".format((entry.metric_after - entry.metric_before) / entry.metric_before * 100) }}%)
+                </span>
+              {% endif %}
+            {% else %}
+              <span class="text-gray-600">After: <strong>{{ entry.metric_after }}</strong></span>
+            {% endif %}
           {% endif %}
         </div>
         {% endif %}
