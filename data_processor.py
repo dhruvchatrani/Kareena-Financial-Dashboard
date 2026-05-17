@@ -71,7 +71,10 @@ def calculate_monthly_summary(db: Session, start_date=None, end_date=None) -> Di
                 summary['Disbursements'] += abs(e.total_amount)
 
         elif e.type == 'Other':
-            summary['Other_Amazon_Fees'] -= e.total_amount
+            if e.description and 'Cost of Advertising' in e.description:
+                summary['Ads_Cost'] += abs(e.total_amount)
+            else:
+                summary['Other_Amazon_Fees'] -= e.total_amount
 
     # 2. COGS
     active_cogs = db.query(models.COGS).filter(models.COGS.effective_end_date == None).all()
@@ -88,9 +91,7 @@ def calculate_monthly_summary(db: Session, start_date=None, end_date=None) -> Di
             models.OperatingExpense.date_incurred <= end_date
         )
     for expense in opex_query.all():
-        if expense.category == 'Amazon Ads':
-            summary['Ads_Cost'] += expense.amount
-        else:
+        if expense.category != 'Amazon Ads':
             summary['OpEx'] += expense.amount
 
     # 4. Business metrics (sessions/conversion)
@@ -280,10 +281,25 @@ def get_comparison_data(db: Session, current_start, current_end) -> Dict:
     """
     current = calculate_monthly_summary(db, current_start, current_end)
 
-    # MoM: same duration, shifted back by number of days
-    delta = (current_end - current_start).days + 1
-    mom_end = current_start - datetime.timedelta(days=1)
-    mom_start = mom_end - datetime.timedelta(days=delta - 1)
+    # WoW: same duration, shifted back by exactly 7 days
+    wow_start = current_start - datetime.timedelta(days=7)
+    wow_end = current_end - datetime.timedelta(days=7)
+    wow = calculate_monthly_summary(db, wow_start, wow_end)
+
+    # MoM: same duration, shifted back by exactly 1 month
+    def _safe_date_prev_month(d):
+        try:
+            m = 12 if d.month == 1 else d.month - 1
+            y = d.year - 1 if d.month == 1 else d.year
+            return datetime.date(y, m, d.day)
+        except ValueError:
+            m = 12 if d.month == 1 else d.month - 1
+            y = d.year - 1 if d.month == 1 else d.year
+            last_day = calendar.monthrange(y, m)[1]
+            return datetime.date(y, m, last_day)
+            
+    mom_start = _safe_date_prev_month(current_start)
+    mom_end = _safe_date_prev_month(current_end)
     mom = calculate_monthly_summary(db, mom_start, mom_end)
 
     # YoY: same date range, one year ago (leap-year safe)
@@ -308,19 +324,23 @@ def get_comparison_data(db: Session, current_start, current_end) -> Dict:
     for k in key_metrics:
         comparison[k] = {
             'current': current.get(k, 0),
+            'wow': wow.get(k, 0),
             'mom': mom.get(k, 0),
             'yoy': yoy.get(k, 0),
+            'wow_pct': pct_change(current.get(k, 0), wow.get(k, 0)),
             'mom_pct': pct_change(current.get(k, 0), mom.get(k, 0)),
             'yoy_pct': pct_change(current.get(k, 0), yoy.get(k, 0)),
         }
 
     return {
         'current': current,
+        'wow': wow,
         'mom': mom,
         'yoy': yoy,
         'comparison': comparison,
         'periods': {
             'current': {'start': str(current_start), 'end': str(current_end)},
+            'wow': {'start': str(wow_start), 'end': str(wow_end)},
             'mom': {'start': str(mom_start), 'end': str(mom_end)},
             'yoy': {'start': str(yoy_start), 'end': str(yoy_end)},
         }
@@ -426,7 +446,7 @@ def get_disbursements(db: Session, start_date=None, end_date=None) -> List[Dict]
     ]
 
 
-def get_reconciliation_check(db: Session, start_date=None, end_date=None) -> Dict:
+def get_reconciliation_check(db: Session, start_date=None, end_date=None, reserve_balance=0.0) -> Dict:
     """
     Check: Does Amazon owe me money?
     - Count refund events that have no matching reimbursement
@@ -442,14 +462,16 @@ def get_reconciliation_check(db: Session, start_date=None, end_date=None) -> Dic
     events = query.all()
 
     total_sales_net = sum(e.total_amount for e in events if e.type == 'Order' and not e.is_deferred)
+    total_sales_gross = sum(e.total_amount for e in events if e.type == 'Order')
     total_refunds = sum(abs(e.total_amount) for e in events if e.type == 'Refund')
     total_reimbursements = sum(abs(e.total_amount) for e in events if e.type == 'Reimbursement')
     total_disbursed = sum(abs(e.total_amount) for e in events if e.type == 'Transfer')
     total_deferred = sum(e.total_amount for e in events if e.is_deferred)
     other_fees = sum(abs(e.total_amount) for e in events if e.type in ('ShippingService', 'Other'))
 
-    expected_payout = total_sales_net - total_refunds + total_reimbursements - other_fees
-    discrepancy = expected_payout - total_disbursed
+    expected_payout_gross = total_sales_gross - total_refunds + total_reimbursements - other_fees
+    should_have_disbursed = expected_payout_gross - reserve_balance - total_deferred
+    discrepancy = should_have_disbursed - total_disbursed
 
     # Simplified "Amazon Owes Me" logic
     # We want to know if the money paid to bank matches (Sales - Fees - Refunds + Reimbursements)
@@ -460,12 +482,15 @@ def get_reconciliation_check(db: Session, start_date=None, end_date=None) -> Dic
     potentially_unreimbursed = refunded_orders - reimbursed_orders
 
     return {
+        'total_sales_gross': round(total_sales_gross, 2),
         'total_sales_net': round(total_sales_net, 2),
         'total_refunds': round(total_refunds, 2),
         'total_reimbursements': round(total_reimbursements, 2),
         'total_disbursed': round(total_disbursed, 2),
         'total_deferred': round(total_deferred, 2),
-        'expected_payout': round(expected_payout, 2),
+        'reserve_balance': round(reserve_balance, 2),
+        'expected_payout_gross': round(expected_payout_gross, 2),
+        'should_have_disbursed': round(should_have_disbursed, 2),
         'discrepancy': round(discrepancy, 2),
         'potentially_unreimbursed_count': len(potentially_unreimbursed),
         'potentially_unreimbursed_orders': list(potentially_unreimbursed)[:20],

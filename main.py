@@ -107,14 +107,63 @@ async def sku_insights(request: Request, start_date: str = None, end_date: str =
     ).all()
     biz_map = {b.sku: {'sessions': b.sessions, 'unit_session_pct': b.unit_session_pct} for b in biz}
 
+    # Get historical comparison DataFrames
+    wow_start = parsed_start - datetime.timedelta(days=7)
+    wow_end = parsed_end - datetime.timedelta(days=7)
+    
+    def _safe_date_prev_month(d):
+        try:
+            m = 12 if d.month == 1 else d.month - 1
+            y = d.year - 1 if d.month == 1 else d.year
+            return datetime.date(y, m, d.day)
+        except ValueError:
+            m = 12 if d.month == 1 else d.month - 1
+            y = d.year - 1 if d.month == 1 else d.year
+            last_day = calendar.monthrange(y, m)[1]
+            return datetime.date(y, m, last_day)
+            
+    mom_start = _safe_date_prev_month(parsed_start)
+    mom_end = _safe_date_prev_month(parsed_end)
+    
+    def _safe_date_prev_year(d):
+        try:
+            return datetime.date(d.year - 1, d.month, d.day)
+        except ValueError:
+            last_day = calendar.monthrange(d.year - 1, d.month)[1]
+            return datetime.date(d.year - 1, d.month, last_day)
+            
+    yoy_start = _safe_date_prev_year(parsed_start)
+    yoy_end = _safe_date_prev_year(parsed_end)
+
+    wow_df = dp.calculate_sku_metrics(db, wow_start, wow_end)
+    mom_df = dp.calculate_sku_metrics(db, mom_start, mom_end)
+    yoy_df = dp.calculate_sku_metrics(db, yoy_start, yoy_end)
+
+    wow_map = wow_df.set_index('Sku').to_dict(orient='index') if not wow_df.empty else {}
+    mom_map = mom_df.set_index('Sku').to_dict(orient='index') if not mom_df.empty else {}
+    yoy_map = yoy_df.set_index('Sku').to_dict(orient='index') if not yoy_df.empty else {}
+
+    def pct_change(cur, prev):
+        if not prev or prev == 0: return None
+        return round((cur - prev) / abs(prev) * 100, 1)
+
     for row in sku_metrics:
         b = biz_map.get(row['Sku'], {})
         row['Sessions'] = b.get('sessions', 0)
         row['Unit_Session_Pct'] = b.get('unit_session_pct', 0.0)
+        
+        sku = row['Sku']
+        cur_sales = row.get('Product Sales', 0)
+        row['WoW_Sales_Pct'] = pct_change(cur_sales, wow_map.get(sku, {}).get('Product Sales', 0))
+        row['MoM_Sales_Pct'] = pct_change(cur_sales, mom_map.get(sku, {}).get('Product Sales', 0))
+        row['YoY_Sales_Pct'] = pct_change(cur_sales, yoy_map.get(sku, {}).get('Product Sales', 0))
 
+    comparison = dp.get_comparison_data(db, parsed_start, parsed_end)
+    
     return templates.TemplateResponse("sku_insights.html", {
         "request": request,
         "sku_metrics": sku_metrics,
+        "comparison": comparison,
         "start_date": start_date,
         "end_date": end_date,
     })
@@ -139,9 +188,9 @@ async def advertising(request: Request, start_date: str = None, end_date: str = 
 #  Reconciliation 
 
 @app.get("/reconciliation", response_class=HTMLResponse)
-async def reconciliation(request: Request, start_date: str = None, end_date: str = None, db: Session = Depends(get_db)):
+async def reconciliation(request: Request, start_date: str = None, end_date: str = None, reserve_balance: float = 0.0, db: Session = Depends(get_db)):
     start_date, end_date, parsed_start, parsed_end = _parse_dates(start_date, end_date)
-    recon = dp.get_reconciliation_check(db, parsed_start, parsed_end)
+    recon = dp.get_reconciliation_check(db, parsed_start, parsed_end, reserve_balance=reserve_balance)
     summary = dp.calculate_monthly_summary(db, parsed_start, parsed_end)
     deep_dive = dp.get_disbursement_deep_dive(db, parsed_start, parsed_end)
     return templates.TemplateResponse("reconciliation.html", {
@@ -151,166 +200,8 @@ async def reconciliation(request: Request, start_date: str = None, end_date: str
         "deep_dive": deep_dive,
         "start_date": start_date,
         "end_date": end_date,
+        "reserve_balance": reserve_balance,
     })
-
-
-#  IQO Log 
-
-@app.get("/iqo", response_class=HTMLResponse)
-async def iqo_page(request: Request, db: Session = Depends(get_db)):
-    entries = db.query(models.IQOLog).order_by(models.IQOLog.week_start.desc()).all()
-    return templates.TemplateResponse("iqo.html", {
-        "request": request,
-        "entries": entries,
-    })
-
-@app.post("/iqo/add")
-async def iqo_add(
-    week_start: str = Form(...),
-    stage: str = Form(...),
-    title: str = Form(...),
-    description: str = Form(None),
-    metric_before: float = Form(None),
-    metric_after: float = Form(None),
-    metric_label: str = Form(None),
-    target_sku: str = Form(None),
-    outcome: str = Form(None),
-    db: Session = Depends(get_db)
-):
-    entry = models.IQOLog(
-        week_start=datetime.datetime.strptime(week_start, "%Y-%m-%d").date(),
-        stage=stage, title=title, description=description,
-        metric_before=metric_before, metric_after=metric_after,
-        metric_label=metric_label, target_sku=target_sku, outcome=outcome
-    )
-    db.add(entry)
-    db.commit()
-    return RedirectResponse(url="/iqo", status_code=303)
-
-@app.post("/iqo/orchestrate/{entry_id}")
-async def iqo_orchestrate(entry_id: int, db: Session = Depends(get_db)):
-    entry = db.query(models.IQOLog).filter(models.IQOLog.id == entry_id).first()
-    if entry:
-        entry.orchestrated = True
-        entry.stage = 'Orchestrate'
-        db.commit()
-    return RedirectResponse(url="/iqo", status_code=303)
-
-@app.post("/iqo/delete/{entry_id}")
-async def iqo_delete(entry_id: int, db: Session = Depends(get_db)):
-    entry = db.query(models.IQOLog).filter(models.IQOLog.id == entry_id).first()
-    if entry:
-        db.delete(entry)
-        db.commit()
-    return RedirectResponse(url="/iqo", status_code=303)
-
-
-@app.get("/api/fetch-metric")
-async def fetch_metric(metric_label: str, week_start: str, target_sku: Optional[str] = None, db: Session = Depends(get_db)):
-    try:
-        ws = datetime.datetime.strptime(week_start, "%Y-%m-%d").date()
-    except ValueError:
-        return JSONResponse({"error": "Invalid date format"}, status_code=400)
-
-    before_start = ws - datetime.timedelta(days=7)
-    before_end = ws - datetime.timedelta(days=1)
-    after_start = ws
-    after_end = ws + datetime.timedelta(days=6)
-
-    def get_val(start, end):
-        label_norm = metric_label.lower()
-        if 'sales' in label_norm:
-            q = db.query(models.FinancialEvent).filter(
-                models.FinancialEvent.posted_date >= start,
-                models.FinancialEvent.posted_date <= end,
-                models.FinancialEvent.type == 'Order'
-            )
-            if target_sku:
-                q = q.filter(models.FinancialEvent.sku == target_sku)
-            return round(sum(e.product_sales for e in q.all()), 2)
-        elif 'cvr' in label_norm or 'conversion' in label_norm:
-            q = db.query(models.AdsMetric).filter(
-                models.AdsMetric.date >= start,
-                models.AdsMetric.date <= end
-            )
-            if target_sku:
-                q = q.filter(models.AdsMetric.sku == target_sku)
-            rows = q.all()
-            clicks = sum(r.clicks for r in rows)
-            orders = sum(r.orders_7d for r in rows)
-            return round(orders / clicks * 100, 2) if clicks > 0 else 0.0
-        return 0.0
-
-    return {
-        "before": get_val(before_start, before_end),
-        "after": get_val(after_start, after_end)
-    }
-
-
-#  Kanban Board 
-
-@app.get("/board", response_class=HTMLResponse)
-async def board(request: Request, db: Session = Depends(get_db)):
-    columns = ['To Do', 'In Progress', 'Review', 'Done']
-    cards_by_col = {}
-    for col in columns:
-        cards_by_col[col] = db.query(models.KanbanCard).filter(
-            models.KanbanCard.column_name == col
-        ).order_by(models.KanbanCard.position).all()
-    return templates.TemplateResponse("board.html", {
-        "request": request,
-        "columns": columns,
-        "cards_by_col": cards_by_col,
-    })
-
-@app.post("/board/add")
-async def board_add(
-    title: str = Form(...),
-    description: str = Form(None),
-    column_name: str = Form('To Do'),
-    assignee: str = Form(None),
-    due_date: str = Form(None),
-    priority: str = Form('Medium'),
-    db: Session = Depends(get_db)
-):
-    due = datetime.datetime.strptime(due_date, "%Y-%m-%d").date() if due_date else None
-    card = models.KanbanCard(
-        title=title, description=description, column_name=column_name,
-        assignee=assignee, due_date=due, priority=priority
-    )
-    db.add(card)
-    db.commit()
-    return RedirectResponse(url="/board", status_code=303)
-
-@app.post("/board/move/{card_id}")
-async def board_move(request: Request, card_id: int, db: Session = Depends(get_db)):
-    column_name = None
-    if "application/json" in request.headers.get("content-type", ""):
-        data = await request.json()
-        column_name = data.get("column_name")
-    else:
-        form = await request.form()
-        column_name = form.get("column_name")
-
-    if not column_name:
-        return JSONResponse({"error": "Missing column_name"}, status_code=400)
-
-    card = db.query(models.KanbanCard).filter(models.KanbanCard.id == card_id).first()
-    if card:
-        card.column_name = column_name
-        db.commit()
-
-    if "application/json" in request.headers.get("accept", ""):
-        return {"status": "success"}
-    return RedirectResponse(url="/board", status_code=303)
-
-@app.post("/board/delete/{card_id}")
-async def board_delete(card_id: int, db: Session = Depends(get_db)):
-    card = db.query(models.KanbanCard).filter(models.KanbanCard.id == card_id).first()
-    if card:
-        db.delete(card)
-        db.commit()
-    return RedirectResponse(url="/board", status_code=303)
 
 
 #  Promotions 
@@ -363,9 +254,9 @@ async def promotions_delete(promo_id: int, db: Session = Depends(get_db)):
 
 #  SOP 
 
-@app.get("/sop", response_class=HTMLResponse)
-async def sop_page(request: Request):
-    sop_file = "user_sop.md"
+@app.get("/docs", response_class=HTMLResponse)
+async def docs_page(request: Request):
+    sop_file = "FORMULA_DOCUMENTATION.md"
     if not os.path.exists(sop_file):
         with open(sop_file, "w") as f:
             f.write("# Standard Operating Procedure\nEdit this content from the UI.")
@@ -375,18 +266,11 @@ async def sop_page(request: Request):
     
     content_html = markdown.markdown(content_md, extensions=['extra', 'nl2br', 'sane_lists'])
     
-    return templates.TemplateResponse("sop.html", {
+    return templates.TemplateResponse("docs.html", {
         "request": request, 
         "content_html": content_html,
         "content_md": content_md
     })
-
-@app.post("/sop/update")
-async def sop_update(content: str = Form(...)):
-    with open("user_sop.md", "w") as f:
-        f.write(content)
-    return RedirectResponse(url="/sop", status_code=303)
-
 
 #  Admin 
 

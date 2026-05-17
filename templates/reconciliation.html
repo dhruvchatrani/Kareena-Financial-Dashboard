@@ -2,23 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reconciliation - Kareena Financial</title>
+  <title>Reconciliation - Unibliss Enterprises</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased">
 <header class="bg-white shadow-sm sticky top-0 z-50">
   <div class="container mx-auto px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-3">
     <div class="flex items-center gap-4 flex-wrap">
-      <h1 class="text-xl font-bold text-blue-900">Kareena Financial</h1>
+      <h1 class="text-xl font-bold text-blue-900">Unibliss Enterprises</h1>
       <nav class="flex flex-wrap gap-2 text-sm">
         <a href="/" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Dashboard</a>
         <a href="/sku-insights" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">SKU Insights</a>
         <a href="/advertising" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Advertising</a>
         <a href="/reconciliation" class="text-blue-600 font-semibold px-3 py-1 rounded-lg bg-blue-50 transition">Reconciliation</a>
         <a href="/promotions" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Promotions</a>
-        <a href="/iqo" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">IQO Log</a>
-        <a href="/board" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Board</a>
-        <a href="/sop" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">SOP</a>
+                        <a href="/docs" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Documentation</a>
         <a href="/audit" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Upload</a>
         <a href="/admin" class="text-gray-600 hover:text-blue-700 px-3 py-1 rounded-lg hover:bg-gray-100 transition">Admin</a>
       </nav>
@@ -27,6 +25,7 @@
       <input type="date" name="start_date" value="{{ start_date }}" class="border rounded-lg px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
       <span class="text-gray-400 text-sm">to</span>
       <input type="date" name="end_date" value="{{ end_date }}" class="border rounded-lg px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+      <input type="number" name="reserve_balance" placeholder="Reserve Balance" value="{{ reserve_balance }}" step="0.01" class="border rounded-lg px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 w-36">
       <button type="submit" class="bg-blue-600 text-white text-sm px-4 py-1.5 rounded-lg hover:bg-blue-700">Filter</button>
     </form>
   </div>
@@ -65,8 +64,8 @@
     <h3 class="font-semibold text-gray-700 mb-4">Amazon Payout Reconciliation (Net Proceeds)</h3>
     <div class="space-y-3 max-w-lg">
       <div class="flex justify-between py-2 border-b border-gray-100">
-        <span class="text-gray-600">Net Sales (Orders - Fees)</span>
-        <span class="font-semibold">₹{{ "{:,.2f}".format(recon.total_sales_net) }}</span>
+        <span class="text-gray-600">Net Order Proceeds (Sales - Fees)</span>
+        <span class="font-semibold">₹{{ "{:,.2f}".format(recon.total_sales_gross) }}</span>
       </div>
       <div class="flex justify-between py-2 border-b border-gray-100">
         <span class="text-gray-600">− Refunds Issued</span>
@@ -77,15 +76,19 @@
         <span class="font-semibold text-green-600">+₹{{ "{:,.2f}".format(recon.total_reimbursements) }}</span>
       </div>
       <div class="flex justify-between py-2 border-b border-gray-100">
-        <span class="text-gray-600">− Promotional Rebates</span>
-        <span class="font-semibold text-orange-500">−₹{{ "{:,.2f}".format(summary.Promotions) }}</span>
-      </div>
-      <div class="flex justify-between py-2 border-b border-gray-200 font-semibold text-gray-800">
-        <span>= Expected Net Payout</span>
-        <span>₹{{ "{:,.2f}".format(recon.expected_payout) }}</span>
+        <span class="text-gray-600">− Account Level Reserve</span>
+        <span class="font-semibold text-orange-500">−₹{{ "{:,.2f}".format(recon.reserve_balance) }}</span>
       </div>
       <div class="flex justify-between py-2 border-b border-gray-100">
-        <span class="text-gray-600">Actual Disbursed</span>
+        <span class="text-gray-600">− Deferred Transactions</span>
+        <span class="font-semibold text-orange-500">−₹{{ "{:,.2f}".format(recon.total_deferred) }}</span>
+      </div>
+      <div class="flex justify-between py-2 border-b border-gray-200 font-semibold text-gray-800">
+        <span>= What Should Have Disbursed</span>
+        <span>₹{{ "{:,.2f}".format(recon.should_have_disbursed) }}</span>
+      </div>
+      <div class="flex justify-between py-2 border-b border-gray-100">
+        <span class="text-gray-600">Actual Disbursed to Bank</span>
         <span class="font-semibold">₹{{ "{:,.2f}".format(recon.total_disbursed) }}</span>
       </div>
       <div class="flex justify-between py-3 rounded-lg px-3 {% if recon.discrepancy | abs < 100 %}bg-green-50{% else %}bg-red-50{% endif %}">
