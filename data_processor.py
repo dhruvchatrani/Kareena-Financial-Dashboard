@@ -2,22 +2,10 @@ import pandas as pd
 import datetime
 import calendar
 import logging
-from typing import Dict, Any, Optional, List
+from typing import Dict, List
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from utils import clean_numeric
 import models
-
-
-def clean_numeric(val):
-    if pd.isna(val) or val == '':
-        return 0.0
-    val_str = str(val).replace('₹', '').replace(',', '').strip()
-    if val_str.startswith('(') and val_str.endswith(')'):
-        val_str = '-' + val_str[1:-1]
-    try:
-        return float(val_str)
-    except ValueError:
-        return 0.0
 
 
 def calculate_monthly_summary(db: Session, start_date=None, end_date=None) -> Dict[str, float]:
@@ -265,7 +253,7 @@ def calculate_sku_metrics(db: Session, start_date=None, end_date=None) -> pd.Dat
     )
 
     # Cashflow health: blended profit per unit >= COGS per unit?
-    sku_stats['Cashflow_Healthy'] = sku_stats['Blended_Profit_Per_Unit'] >= sku_stats['Unit_COGS']
+    sku_stats['Cashflow_Healthy'] = sku_stats['Blended_Profit_Per_Sale'] >= sku_stats['Unit_COGS']
 
     return sku_stats
 

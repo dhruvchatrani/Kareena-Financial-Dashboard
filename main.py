@@ -3,6 +3,10 @@ from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse, JSON
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
+from alembic.config import Config as AlembicConfig
+from alembic import command as alembic_command
+import contextlib
+import uuid
 import os
 import datetime
 import calendar
@@ -11,13 +15,11 @@ import data_processor as dp
 from database import engine, get_db
 import models
 import logging
-import shutil
 from dotenv import load_dotenv
 import processor
 import auditor
 import json
 from pydantic import BaseModel
-from typing import Optional
 import markdown
 
 load_dotenv()
@@ -28,7 +30,8 @@ class SettingsUpdate(BaseModel):
     max_return_pct: float
     min_net_profit_per_unit: float
 
-models.Base.metadata.create_all(bind=engine)
+alembic_cfg = AlembicConfig("alembic.ini")
+alembic_command.upgrade(alembic_cfg, "head")
 
 app = FastAPI(title="Kareena Fin Dashboard")
 
@@ -40,6 +43,29 @@ templates = Jinja2Templates(directory="templates")
 templates.env.globals.update(datetime=datetime)
 
 logging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger(__name__)
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    req_id = getattr(request.state, "request_id", "????")
+    logger.error(f"[{req_id}] Unhandled exception on {request.method} {request.url.path}: {exc}", exc_info=True)
+    return templates.TemplateResponse("error.html", {
+        "request": request,
+        "error": str(exc),
+        "request_id": req_id,
+    }, status_code=500)
+
+
+@app.middleware("http")
+async def add_request_id(request: Request, call_next):
+    request_id = str(uuid.uuid4())[:8]
+    request.state.request_id = request_id
+    logger.info(f"[{request_id}] {request.method} {request.url.path}")
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+    return response
 
 
 #  Helpers 
@@ -449,71 +475,85 @@ async def upload_manual(
     upload_dir = "uploads"
     os.makedirs(upload_dir, exist_ok=True)
     results = []
+    errors = []
 
     year, mo = map(int, month.split('-'))
     last_day = calendar.monthrange(year, mo)[1]
     month_start = datetime.date(year, mo, 1)
     month_end   = datetime.date(year, mo, last_day)
 
+    saved = []
+
+    async def save_file(uf: UploadFile) -> str:
+        path = os.path.join(upload_dir, uf.filename)
+        with open(path, "wb") as f:
+            f.write(await uf.read())
+        return path
+
     try:
-        async def save_file(uf: UploadFile) -> str:
-            path = os.path.join(upload_dir, uf.filename)
-            with open(path, "wb") as f:
-                f.write(await uf.read())
-            return path
-
-        saved = []
-
         if settlement and settlement.filename:
             path = await save_file(settlement)
             saved.append(path)
             count = processor.sync_settlement_csv(
                 path, db, month_start=month_start, month_end=month_end, is_deferred=False)
             results.append(f"Settlement: {count} records synced")
+    except Exception as e:
+        errors.append(f"Settlement: {e}")
 
+    try:
         if deferred and deferred.filename:
             path = await save_file(deferred)
             saved.append(path)
             count = processor.sync_settlement_csv(
                 path, db, month_start=month_start, month_end=month_end, is_deferred=True)
             results.append(f"Deferred: {count} records synced")
+    except Exception as e:
+        errors.append(f"Deferred: {e}")
 
+    try:
         if business and business.filename:
             path = await save_file(business)
             saved.append(path)
             biz = processor.sync_business_csv(path, db_session=db, month_start=month_start)
             results.append(f"Business: {biz['sessions']} sessions, {biz['conversion_pct']}% conversion")
+    except Exception as e:
+        errors.append(f"Business: {e}")
 
+    try:
         if ads and ads.filename:
             path = await save_file(ads)
             saved.append(path)
             spend = processor.sync_ads_report(path, db, month_start=month_start)
             results.append(f"Ads: ₹{spend:,.2f} total spend")
+    except Exception as e:
+        errors.append(f"Ads: {e}")
 
+    try:
         if returns and returns.filename:
             path = await save_file(returns)
             saved.append(path)
             ret_count = processor.sync_returns_xml(path, db_session=db, month_start=month_start)
             results.append(f"Returns: {ret_count} returns found")
-
-        db.add(models.SyncLog(
-            status="Success",
-            details=f"Monthly upload for {month}: " + "; ".join(results)
-        ))
-        db.commit()
-
-        for p in saved:
-            if os.path.exists(p):
-                os.remove(p)
-
-        return RedirectResponse(
-            url=f"/?start_date={month_start}&end_date={month_end}",
-            status_code=303
-        )
-
     except Exception as e:
-        logging.error(f"Upload failed: {e}", exc_info=True)
-        return HTMLResponse(
-            content=f"<h2>Upload Error</h2><p>{e}</p><a href='/audit'>← Try again</a>",
-            status_code=500
-        )
+        errors.append(f"Returns: {e}")
+
+    for p in saved:
+        if os.path.exists(p):
+            os.remove(p)
+
+    overall_status = "Success" if not errors else "Partial"
+    all_details = "; ".join(results)
+    if errors:
+        all_details += " | ERRORS: " + "; ".join(errors)
+
+    db.add(models.SyncLog(status=overall_status, details=f"Monthly upload for {month}: {all_details}"))
+    db.commit()
+
+    if not errors:
+        return RedirectResponse(url=f"/?start_date={month_start}&end_date={month_end}", status_code=303)
+
+    return templates.TemplateResponse("audit.html", {
+        "request": request,
+        "error": "Some files failed to process:<br>" + "<br>".join(errors),
+        "partial_results": results,
+    }, status_code=400)
