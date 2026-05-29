@@ -1,4 +1,4 @@
-# Kareena Financial Dashboard — Master Document
+# Unibliss Financial Dashboard — Master Document
 
 **Entity:** Unibliss Enterprises  
 **Marketplace:** Amazon India (`A21TJRUUN4KGV`)  
@@ -9,7 +9,7 @@
 
 ## 1. What It Is
 
-Kareena is a **self-sovereign ERP and financial auditing tool** purpose-built for Amazon India sellers. It replaces spreadsheets with a locally-hosted web dashboard that:
+Unibliss is a **self-sovereign ERP and financial auditing tool** purpose-built for Amazon India sellers. It replaces spreadsheets with a locally-hosted web dashboard that:
 
 - Calculates **fully-burdened per-SKU profitability** (direct costs + proportional OpEx allocation)
 - Handles **accrual-based accounting** for Amazon's deferred transactions
@@ -23,7 +23,7 @@ Kareena is a **self-sovereign ERP and financial auditing tool** purpose-built fo
 ## 2. Directory Map
 
 ```
-kareena/
+unibliss/
 ├── main.py                     # FastAPI application — 519 lines, 14 routes
 ├── processor.py                # CSV/XML/XLSX ingestion — 364 lines
 ├── data_processor.py           # Financial calculations — 553 lines
@@ -38,7 +38,7 @@ kareena/
 ├── README.md                   # Project documentation
 ├── user_sop.md                 # 8-step monthly operating procedure
 ├── Start_Dashboard.bat         # Windows one-click launcher
-├── kareena_erp.db              # SQLite database (live, 335 KB)
+├── unibliss_erp.db              # SQLite database (live, 335 KB)
 ├── FORMULA_DOCUMENTATION.md     # Formula reference (placeholder)
 ├── templates/                  # 9 Jinja2 HTML templates
 │   ├── index.html              # Main dashboard
@@ -61,7 +61,7 @@ kareena/
 
 ## 3. Database Schema (SQLAlchemy ORM)
 
-All tables live in `models.py`, backed by `kareena_erp.db` (SQLite).
+All tables live in `models.py`, backed by `unibliss_erp.db` (SQLite).
 
 ### financial_events
 | Column | Type | Notes |
@@ -216,7 +216,7 @@ All tables live in `models.py`, backed by `kareena_erp.db` (SQLite).
 | `/promotions/delete/{id}` | POST | redirect | Delete a promotion |
 | `/docs` | GET | docs.html | Render FORMULA_DOCUMENTATION.md as HTML |
 | `/admin` | GET | admin.html | Inventory management, COGS versioning, expense logging, DB backup/reset |
-| `/admin/backup` | GET | — | Download kareena_erp.db |
+| `/admin/backup` | GET | — | Download unibliss_erp.db |
 | `/admin/inventory` | POST | redirect | Update local stock count for a SKU |
 | `/admin/cogs` | POST | redirect | Add/update versioned COGS for a SKU |
 | `/admin/expense` | POST | redirect | Log an operating expense |
@@ -360,7 +360,7 @@ FastAPI uses async threads; SQLite requires this flag to allow cross-thread acce
 Before inserting data for a month, existing records for the same month+deferred flag are deleted. This supports clean re-uploads.
 
 ### Deferred Transaction Handling
-Amazon holds back payments for orders still within the return window. Kareena marks these as `is_deferred=True`:
+Amazon holds back payments for orders still within the return window. Unibliss marks these as `is_deferred=True`:
 - **Excluded** from current-period Net Income
 - **Tracked separately** as `Owed_Deferred` — shown as money Amazon will pay next period
 - When deferred CSV is uploaded, those records are marked `is_deferred=True`

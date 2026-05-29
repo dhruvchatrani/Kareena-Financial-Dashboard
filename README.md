@@ -1,15 +1,15 @@
-# Kareena Financial Dashboard
+# Unibliss Financial Dashboard
 
 > A custom, self-sovereign ERP and financial auditing tool built for Amazon India sellers.
 
-Kareena is a privately-hosted web application that replaces generic spreadsheets with a purpose-built financial intelligence platform. It is designed to give Amazon sellers a clear, accurate, and fully-burdened view of their business — from gross revenue down to true per-SKU profitability — without sharing sensitive data with any third-party SaaS tool.
+Unibliss is a privately-hosted web application that replaces generic spreadsheets with a purpose-built financial intelligence platform. It is designed to give Amazon sellers a clear, accurate, and fully-burdened view of their business — from gross revenue down to true per-SKU profitability — without sharing sensitive data with any third-party SaaS tool.
 
 ---
 
 ##  Key Features
 
 ###  Accrual-Based Financial Processing
-Amazon settlements are notoriously complex. Kareena correctly handles **deferred transactions** (orders still within the return window that are held back from the current settlement) to ensure your Net Income figure reflects the actual period it belongs to — not just when Amazon happened to include it in a payout.
+Amazon settlements are notoriously complex. Unibliss correctly handles **deferred transactions** (orders still within the return window that are held back from the current settlement) to ensure your Net Income figure reflects the actual period it belongs to — not just when Amazon happened to include it in a payout.
 
 ###  Fully-Burdened SKU Profitability
 Every SKU's **True Net Profit** is calculated by:
@@ -22,7 +22,7 @@ This means no SKU can hide behind blended averages — you see exactly which pro
 A structured framework for running one change at a time (image, price, keyword, listing copy) and measuring its impact using real before/after metrics fetched directly from your data. Successful experiments are flagged for **Orchestration** — permanently baking the winning change into your strategy.
 
 ###  Reconciliation Auditing
-Kareena calculates the **Expected Payout** (what Amazon *should* be depositing) and compares it against the actual disbursement. Any discrepancy is surfaced immediately, allowing you to raise Amazon Seller Support cases before money is lost or written off.
+Unibliss calculates the **Expected Payout** (what Amazon *should* be depositing) and compares it against the actual disbursement. Any discrepancy is surfaced immediately, allowing you to raise Amazon Seller Support cases before money is lost or written off.
 
 ###  Advertising Intelligence
 Tracks ACOS, TACOS, ROAS, CVR, CPC, and daily Spend vs. Sales trends with clean, honest single-axis Plotly charts — no misleading dual-axis distortions.
@@ -60,13 +60,13 @@ All uploaded financial data is persisted in a local SQLite database. Month-on-mo
 
 **Option A — Git (recommended):**
 ```bash
-git clone https://github.com/your-username/kareena.git
-cd kareena
+git clone https://github.com/your-username/unibliss.git
+cd unibliss
 ```
 
 **Option B — Manual download:**
 - Click the green **Code** button on GitHub → **Download ZIP**
-- Extract the ZIP to a folder of your choice (e.g., `C:\Users\YourName\kareena`)
+- Extract the ZIP to a folder of your choice (e.g., `C:\Users\YourName\unibliss`)
 
 ---
 
@@ -124,7 +124,7 @@ Follow the 8-step SOP (available in the **SOP** tab) after each upload:
 ##  Project Structure
 
 ```
-kareena/
+unibliss/
  main.py                  # FastAPI routes and application entrypoint
  models.py                # SQLAlchemy database models
  data_processor.py        # Core financial calculation engine
@@ -151,7 +151,7 @@ Key metrics include Net Income, Gross Margin %, ACOS, TACOS, True Profit / Sale,
 
 ##  Data & Privacy
 
-All data is stored **locally** on your machine in a SQLite database file (`kareena.db`). No data is transmitted to any external server or cloud service. The application runs entirely offline after initial dependency installation.
+All data is stored **locally** on your machine in a SQLite database file (`unibliss_erp.db`). No data is transmitted to any external server or cloud service. The application runs entirely offline after initial dependency installation.
 
 ---
 

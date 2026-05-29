@@ -1,4 +1,4 @@
-# Kareena — Sprint Plan Overview
+# Unibliss — Sprint Plan Overview
 
 **Start Date:** Mon 2026-06-01  
 **Sprint Cadence:** 2 weeks  

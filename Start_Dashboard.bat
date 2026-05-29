@@ -1,8 +1,8 @@
 @echo off
-TITLE Kareena Financial Dashboard
+TITLE Unibliss Financial Dashboard
 color 0B
 echo ===================================================
-echo    Starting Kareena Financial Dashboard...
+echo    Starting Unibliss Financial Dashboard...
 echo ===================================================
 echo.
 echo Please leave this window OPEN while using the dashboard.

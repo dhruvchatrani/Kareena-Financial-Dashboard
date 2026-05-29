@@ -33,7 +33,7 @@ class SettingsUpdate(BaseModel):
 alembic_cfg = AlembicConfig("alembic.ini")
 alembic_command.upgrade(alembic_cfg, "head")
 
-app = FastAPI(title="Kareena Fin Dashboard")
+app = FastAPI(title="Unibliss Fin Dashboard")
 
 os.makedirs("templates", exist_ok=True)
 os.makedirs("static", exist_ok=True)
@@ -318,9 +318,9 @@ async def admin(request: Request, db: Session = Depends(get_db)):
 
 @app.get("/admin/backup")
 async def backup_database():
-    db_path = os.path.join(os.getcwd(), "kareena_erp.db")
+    db_path = os.path.join(os.getcwd(), "unibliss_erp.db")
     if os.path.exists(db_path):
-        return FileResponse(path=db_path, filename="kareena_erp.db", media_type="application/x-sqlite3")
+        return FileResponse(path=db_path, filename="unibliss_erp.db", media_type="application/x-sqlite3")
     return {"error": "Database file not found"}
 
 @app.post("/admin/inventory")
