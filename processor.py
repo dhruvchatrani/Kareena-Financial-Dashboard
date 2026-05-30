@@ -53,7 +53,6 @@ def sync_settlement_csv(file_path, db_session: Session, month_start=None, month_
             models.FinancialEvent.posted_date <= month_end,
             models.FinancialEvent.is_deferred == is_deferred
         ).delete()
-        db_session.commit()
 
     inserted = 0
     for _, row in df.iterrows():
@@ -149,7 +148,6 @@ def sync_settlement_csv(file_path, db_session: Session, month_start=None, month_
         db_session.add(new_event)
         inserted += 1
 
-    db_session.commit()
     return inserted
 
 
@@ -174,7 +172,6 @@ def sync_ads_report(file_path, db_session: Session, month_start=None):
         db_session.query(models.AdsMetric).filter(
             models.AdsMetric.report_month == month_start
         ).delete()
-        db_session.commit()
 
     numeric_cols = {
         'impressions': 'Impressions',
@@ -240,8 +237,6 @@ def sync_ads_report(file_path, db_session: Session, month_start=None):
         )
         db_session.add(metric)
 
-    db_session.commit()
-
     # Upsert total spend as OperatingExpense
     if total_spend > 0 and month_start:
         existing = db_session.query(models.OperatingExpense).filter(
@@ -257,7 +252,6 @@ def sync_ads_report(file_path, db_session: Session, month_start=None):
                 date_incurred=month_start,
                 description='Sponsored Products ad spend from uploaded report'
             ))
-        db_session.commit()
 
     return total_spend
 
@@ -286,7 +280,6 @@ def sync_business_csv(file_path, db_session: Session = None, month_start=None):
         db_session.query(models.BusinessMetric).filter(
             models.BusinessMetric.report_month == month_start
         ).delete()
-        db_session.commit()
 
         for _, row in df.iterrows():
             sku = str(row.get('SKU', '')).strip()
@@ -304,7 +297,6 @@ def sync_business_csv(file_path, db_session: Session = None, month_start=None):
                 ordered_product_sales=clean_numeric(row.get('Ordered Product Sales', 0)),
             )
             db_session.add(bm)
-        db_session.commit()
 
     return {
         "units_ordered": int(units),

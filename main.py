@@ -475,7 +475,6 @@ async def upload_manual(
     upload_dir = "uploads"
     os.makedirs(upload_dir, exist_ok=True)
     results = []
-    errors = []
 
     year, mo = map(int, month.split('-'))
     last_day = calendar.monthrange(year, mo)[1]
@@ -497,63 +496,52 @@ async def upload_manual(
             count = processor.sync_settlement_csv(
                 path, db, month_start=month_start, month_end=month_end, is_deferred=False)
             results.append(f"Settlement: {count} records synced")
-    except Exception as e:
-        errors.append(f"Settlement: {e}")
 
-    try:
         if deferred and deferred.filename:
             path = await save_file(deferred)
             saved.append(path)
             count = processor.sync_settlement_csv(
                 path, db, month_start=month_start, month_end=month_end, is_deferred=True)
             results.append(f"Deferred: {count} records synced")
-    except Exception as e:
-        errors.append(f"Deferred: {e}")
 
-    try:
         if business and business.filename:
             path = await save_file(business)
             saved.append(path)
             biz = processor.sync_business_csv(path, db_session=db, month_start=month_start)
             results.append(f"Business: {biz['sessions']} sessions, {biz['conversion_pct']}% conversion")
-    except Exception as e:
-        errors.append(f"Business: {e}")
 
-    try:
         if ads and ads.filename:
             path = await save_file(ads)
             saved.append(path)
             spend = processor.sync_ads_report(path, db, month_start=month_start)
             results.append(f"Ads: ₹{spend:,.2f} total spend")
-    except Exception as e:
-        errors.append(f"Ads: {e}")
 
-    try:
         if returns and returns.filename:
             path = await save_file(returns)
             saved.append(path)
             ret_count = processor.sync_returns_xml(path, db_session=db, month_start=month_start)
             results.append(f"Returns: {ret_count} returns found")
+
+        db.add(models.SyncLog(
+            status="Success",
+            details=f"Monthly upload for {month}: " + "; ".join(results)
+        ))
+        db.commit()
+
+        return RedirectResponse(
+            url=f"/?start_date={month_start}&end_date={month_end}",
+            status_code=303
+        )
+
     except Exception as e:
-        errors.append(f"Returns: {e}")
+        db.rollback()
+        logger.error(f"Upload failed, all changes rolled back: {e}", exc_info=True)
+        return templates.TemplateResponse("audit.html", {
+            "request": request,
+            "error": f"Upload failed. No data was saved.<br>{e}",
+        }, status_code=400)
 
-    for p in saved:
-        if os.path.exists(p):
-            os.remove(p)
-
-    overall_status = "Success" if not errors else "Partial"
-    all_details = "; ".join(results)
-    if errors:
-        all_details += " | ERRORS: " + "; ".join(errors)
-
-    db.add(models.SyncLog(status=overall_status, details=f"Monthly upload for {month}: {all_details}"))
-    db.commit()
-
-    if not errors:
-        return RedirectResponse(url=f"/?start_date={month_start}&end_date={month_end}", status_code=303)
-
-    return templates.TemplateResponse("audit.html", {
-        "request": request,
-        "error": "Some files failed to process:<br>" + "<br>".join(errors),
-        "partial_results": results,
-    }, status_code=400)
+    finally:
+        for p in saved:
+            if os.path.exists(p):
+                os.remove(p)
