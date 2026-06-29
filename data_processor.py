@@ -42,10 +42,13 @@ def calculate_monthly_summary(db: Session, start_date=None, end_date=None) -> Di
             summary['Selling_Fees'] += abs(e.selling_fees)
             summary['Units_Sold'] += e.quantity or 0
             # Other fees = what Amazon took beyond known fees
+            # `other_tx` already includes promotional rebates; subtract them so
+            # Promotions is not double-counted in Net Income.
             calc_net = e.product_sales - abs(e.fba_fees) - abs(e.selling_fees)
             other_tx = calc_net - e.total_amount
-            summary['Other_Amazon_Fees'] += other_tx
-            summary['Promotions'] += abs(e.promotional_rebates)
+            promo_amt = abs(e.promotional_rebates)
+            summary['Other_Amazon_Fees'] += other_tx - promo_amt
+            summary['Promotions'] += promo_amt
 
         elif e.type == 'Refund':
             summary['Refunds'] += abs(e.total_amount)
@@ -142,9 +145,9 @@ def calculate_monthly_summary(db: Session, start_date=None, end_date=None) -> Di
         summary['Revenue_Per_Unit'] = round(summary['Sales'] / summary['Units_Sold'], 2) if summary['Units_Sold'] > 0 else 0.0
 
     if summary['Units_Sold'] > 0:
-        summary['Profit_Per_Sale'] = round(summary['Net_Income'] / summary['Units_Sold'], 2)
+        summary['Profit_Per_Unit'] = round(summary['Net_Income'] / summary['Units_Sold'], 2)
     else:
-        summary['Profit_Per_Sale'] = 0.0
+        summary['Profit_Per_Unit'] = 0.0
 
     # ROI = Net Income / COGS (return on inventory investment)
     if summary['COGS'] > 0:
@@ -168,12 +171,14 @@ def calculate_sku_metrics(db: Session, start_date=None, end_date=None) -> pd.Dat
     for e in events:
         if e.is_deferred:
             continue
-        # Fix: only compute other_tx_fees for Order type
         other_tx_fees = 0.0
+        promo_amt = 0.0
         if e.type == 'Order':
             calc_net = e.product_sales - abs(e.fba_fees) - abs(e.selling_fees)
             other_tx_fees = calc_net - e.total_amount
-        # Do NOT add Other type fees here — they are non-SKU level
+            # Remove promotional rebates from other_tx_fees to avoid double count
+            promo_amt = abs(e.promotional_rebates)
+            other_tx_fees -= promo_amt
 
         df_rows.append({
             'Sku': e.sku,
@@ -185,7 +190,7 @@ def calculate_sku_metrics(db: Session, start_date=None, end_date=None) -> pd.Dat
             'Other Amazon Fees': other_tx_fees,
             'Units Ordered': e.quantity if e.type == 'Order' else 0,
             'Returns Count': 1 if e.type == 'Refund' else 0,
-            'Promotions': abs(e.promotional_rebates) if e.type == 'Order' else 0.0
+            'Promotions': promo_amt
         })
 
     df = pd.DataFrame(df_rows)

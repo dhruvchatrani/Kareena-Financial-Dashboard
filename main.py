@@ -19,6 +19,7 @@ from dotenv import load_dotenv
 import processor
 import auditor
 import json
+import re
 from pydantic import BaseModel
 import markdown
 
@@ -71,9 +72,10 @@ async def add_request_id(request: Request, call_next):
 #  Helpers 
 
 def _parse_dates(start_date, end_date):
-    if not start_date or not end_date:
-        today = datetime.date.today()
+    today = datetime.date.today()
+    if not start_date:
         start_date = (today - datetime.timedelta(days=179)).strftime("%Y-%m-%d")
+    if not end_date:
         end_date = today.strftime("%Y-%m-%d")
     parsed_start = datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
     parsed_end   = datetime.datetime.strptime(end_date,   "%Y-%m-%d").date()
@@ -362,7 +364,8 @@ async def reset_db(request: Request, db: Session = Depends(get_db)):
     try:
         for model in [models.FinancialEvent, models.Inventory, models.COGS,
                       models.OperatingExpense, models.SyncLog, models.AdsMetric,
-                      models.BusinessMetric]:
+                      models.BusinessMetric, models.Promotion,
+                      models.IQOLog, models.KanbanCard]:
             db.query(model).delete()
         db.commit()
         return RedirectResponse(url="/admin?msg=Database+Reset+Successful", status_code=303)
@@ -389,7 +392,6 @@ async def import_whatsapp(db: Session = Depends(get_db)):
         for m_name, m_num in months.items():
             if m_name in filename:
                 # Look for year
-                import re
                 year_match = re.search(r'20\d{2}', filename)
                 if year_match:
                     year = int(year_match.group())
@@ -445,13 +447,13 @@ async def get_settings():
     try:
         with open('config.json', 'r') as f:
             return json.load(f)
-    except FileNotFoundError:
-        return {"error": "Config file not found"}
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {"error": "Config file not found or corrupt"}
 
 @app.post("/settings")
 async def update_settings(settings: SettingsUpdate):
     with open('config.json', 'w') as f:
-        json.dump(settings.dict(), f, indent=2)
+        json.dump(settings.model_dump(), f, indent=2)
     return {"status": "success"}
 
 
@@ -484,7 +486,8 @@ async def upload_manual(
     saved = []
 
     async def save_file(uf: UploadFile) -> str:
-        path = os.path.join(upload_dir, uf.filename)
+        safe_name = os.path.basename(uf.filename)
+        path = os.path.join(upload_dir, safe_name)
         with open(path, "wb") as f:
             f.write(await uf.read())
         return path

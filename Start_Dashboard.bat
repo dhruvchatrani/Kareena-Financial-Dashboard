@@ -19,11 +19,23 @@ IF NOT EXIST "venv\Scripts\activate.bat" (
     call venv\Scripts\activate.bat
 )
 
+:: Start the FastAPI server in the background
+echo [System] Starting server...
+start /B python -m uvicorn main:app --host 127.0.0.1 --port 8000
+
+:: Wait for the server to respond before opening the browser
+echo [System] Waiting for server to be ready...
+:waitloop
 timeout /t 2 /nobreak > NUL
+python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000')" 2>NUL && goto ready
+goto waitloop
+
+:ready
+echo [System] Dashboard is running. You can now use your browser.
 start http://127.0.0.1:8000
 
-:: Start the FastAPI server
-echo [System] Dashboard is running. You can now use your browser.
-python -m uvicorn main:app --host 127.0.0.1 --port 8000
+:: On shutdown, kill only the server (not other Python processes)
+echo.
+echo Close this window to shut down the server.
 
 pause

@@ -58,7 +58,7 @@
           <p class="text-xs font-medium text-gray-500 mb-1 cursor-help underline decoration-dotted">True Profit / Sale</p>
           <span class="hidden group-hover:block absolute z-50 bg-gray-800 text-white text-xs rounded p-2 bottom-full mb-2 w-48 text-center shadow-lg">Formula: Net Income / Gross Units Sold</span>
         </div>
-        <p class="text-xl font-bold {% if summary.Profit_Per_Sale >= 0 %}text-green-600{% else %}text-red-600{% endif %} truncate">₹{{ "{:,.0f}".format(summary.Profit_Per_Sale) }}</p>
+        <p class="text-xl font-bold {% if summary.Profit_Per_Unit >= 0 %}text-green-600{% else %}text-red-600{% endif %} truncate">₹{{ "{:,.0f}".format(summary.Profit_Per_Unit) }}</p>
       </div>
       <!-- Account CVR card with tooltip -->
       <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition">
